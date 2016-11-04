@@ -489,32 +489,4 @@ class ModuleDates extends Modules
 
         return $sqlConditions;
     }
-
-    /**
-     * Method validates all date inputs and formats them to date format 'Y-m-d' needed for database queries
-     * @deprecated 3.2.0:4.0.0 Dropped without replacement.
-     * @param string $date Date to be validated and formated if needed
-     * @return string|false
-     */
-    private function formatDate($date)
-    {
-        global $gLogger, $gPreferences;
-
-        $gLogger->warning('DEPRECATED: "$moduleDates->formatDate()" is deprecated without replacement!');
-
-        $objDate = DateTime::createFromFormat('Y-m-d', $date);
-        if ($objDate !== false)
-        {
-            return $date;
-        }
-
-        // check if date has system format
-        $objDate = DateTime::createFromFormat($gPreferences['system_date'], $date);
-        if ($objDate !== false)
-        {
-            return $objDate->format('Y-m-d');
-        }
-
-        return false;
-    }
 }
