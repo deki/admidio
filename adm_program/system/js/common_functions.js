@@ -118,7 +118,6 @@ function formatPhpToMoment(format) {
         },
         O: "ZZ",
         P: "Z",
-        T: "[T]", // deprecated in moment
         Z: function() {
             return parseInt(this.format("ZZ"), 10) * 36;
         },

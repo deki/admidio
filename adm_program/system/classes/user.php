@@ -1729,19 +1729,4 @@ class User extends TableAccess
     {
         return $this->checkRolesRight('rol_inventory');
     }
-
-    /**
-     * Checks if the user is assigned to the role @b Administrator
-     * @deprecated 3.2.0:4.0.0 Use Method isAdministrator() instead
-     * @return bool Returns @b true if the user is a member of the role @b Administrator
-     * @see User#isAdministrator
-     */
-    public function isWebmaster()
-    {
-        global $gLogger;
-
-        $gLogger->warning('DEPRECATED: "$user->isWebmaster()" is deprecated, use "$user->isAdministrator()" instead!');
-
-        return $this->isAdministrator();
-    }
 }

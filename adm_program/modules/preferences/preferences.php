@@ -440,18 +440,6 @@ $page->addHtml('
                         }
                         $form->addStaticControl('database_version', $gDb->getName().'-'.$gL10n->get('SYS_VERSION'), $html);
 
-                        // deprecated: Remove if PHP 5.3 dropped
-                        if(ini_get('safe_mode') === '1')
-                        {
-                            $gLogger->warning('DEPRECATED: Safe-Mode is enabled!');
-                            $html = '<span class="text-danger"><strong>'.$gL10n->get('SYS_ON').'</strong></span> &rarr; '.$gL10n->get('SYS_SAFE_MODE_PROBLEM');
-                        }
-                        else
-                        {
-                            $html = '<span class="text-success"><strong>'.$gL10n->get('SYS_OFF').'</strong></span>';
-                        }
-                        $form->addStaticControl('safe_mode', $gL10n->get('SYS_SAFE_MODE'), $html);
-
                         if(ini_get('post_max_size') !== '')
                         {
                             $form->addStaticControl('post_max_size', $gL10n->get('SYS_POST_MAX_SIZE'), ini_get('post_max_size'));

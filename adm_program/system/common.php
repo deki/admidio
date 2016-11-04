@@ -47,18 +47,10 @@ else
 require_once(ADMIDIO_PATH . '/adm_program/system/logging.php');
 
 // remove HTML & PHP-Code from all parameters
-$_GET    = admStrStripTagsSpecial($_GET);
-$_POST   = admStrStripTagsSpecial($_POST);
-$_COOKIE = admStrStripTagsSpecial($_COOKIE);
-
 // escape all quotes so db queries are save
-// deprecated
-if(!get_magic_quotes_gpc())
-{
-    $_GET    = strAddSlashesDeep($_GET);
-    $_POST   = strAddSlashesDeep($_POST);
-    $_COOKIE = strAddSlashesDeep($_COOKIE);
-}
+$_GET    = strAddSlashesDeep(admStrStripTagsSpecial($_GET));
+$_POST   = strAddSlashesDeep(admStrStripTagsSpecial($_POST));
+$_COOKIE = strAddSlashesDeep(admStrStripTagsSpecial($_COOKIE));
 
 // global parameters
 $gValidLogin = false;
@@ -229,8 +221,6 @@ if(!array_key_exists('theme', $gPreferences))
 
 define('THEME_ADMIDIO_PATH', ADMIDIO_PATH . FOLDER_THEMES . '/' . $gPreferences['theme']); // Will get "THEME_PATH" in v4.0
 define('THEME_URL', ADMIDIO_URL . FOLDER_THEMES . '/' . $gPreferences['theme']);
-define('THEME_SERVER_PATH', THEME_ADMIDIO_PATH); // Deprecated
-define('THEME_PATH', THEME_URL); // Deprecated
 
 // Create message object which can be called if a message should be shown
 $gMessage = new Message();
