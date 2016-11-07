@@ -10,26 +10,10 @@
  */
 if(is_file('adm_my_files/config.php'))
 {
-    require_once('adm_program/system/common.php');
-
-    // connect to database
-    try
-    {
-        $gDb = new Database($gDbType, $g_adm_srv, $g_adm_port, $g_adm_db, $g_adm_usr, $g_adm_pw);
-    }
-    catch(AdmException $e)
-    {
-        $e->showText();
-        // => EXIT
-    }
-
-    // if database doesn't contain the components table then link to update wizard
-    // because database Admidio version is lower then 3.0
-    if($gDb->query('SELECT 1 FROM '.TBL_COMPONENTS, false) === false)
-    {
-        admRedirect(ADMIDIO_URL . '/adm_program/installation/update.php');
-        // => EXIT
-    }
+    require_once('adm_my_files/config.php');
+    require_once('adm_program/system/init_globals.php');
+    require_once('adm_program/system/constants.php');
+    require_once('adm_program/system/function.php');
 
     if(isset($gHomepage))
     {

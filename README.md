@@ -50,8 +50,6 @@ Short update description:
 - Call the index.php in your Admidio folder and start the update.
 - Update all installed plugins in the folder adm_plugins.
 
-If you perform an update from version 2.x to version 3.x please read our [special update instructions](https://www.admidio.org/dokuwiki/doku.php?id=en:2.0:update_von_2.x_auf_3.x).
-
 ## Contributing
 
 There are several ways how you can contribute to Admidio.

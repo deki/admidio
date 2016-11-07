@@ -249,25 +249,11 @@ if($gDbType === 'mysql')
     $db->query($sql);
 }
 
-echo 'Installation successful !<br />';
+echo 'Installation successful!<br />';
 
-// read installed database version
-if(!$db->query('SELECT 1 FROM '.TBL_COMPONENTS, false))
-{
-    // in Admidio version 2 the database version was stored in preferences table
-    $sql = 'SELECT prf_value
-              FROM '.$g_tbl_praefix.'_preferences
-             WHERE prf_name   = \'db_version\'
-               AND prf_org_id = 1';
-    $pdoStatement = $db->query($sql);
-    $databaseVersion = $pdoStatement->fetchColumn();
-}
-else
-{
-    $systemComponent = new Component($db);
-    $systemComponent->readDataByColumns(array('com_type' => 'SYSTEM', 'com_name_intern' => 'CORE'));
-    $databaseVersion = $systemComponent->getValue('com_version');
-}
+$systemComponent = new Component($db);
+$systemComponent->readDataByColumns(array('com_type' => 'SYSTEM', 'com_name_intern' => 'CORE'));
+$databaseVersion = $systemComponent->getValue('com_version');
 
 echo '<p>Database and test-data have the Admidio version '.$databaseVersion.'.<br />
  Your files have Admidio version '.ADMIDIO_VERSION.'.<br /><br />

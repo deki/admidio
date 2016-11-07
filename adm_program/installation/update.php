@@ -19,17 +19,6 @@ if(is_file('../../adm_my_files/config.php'))
 {
     require_once('../../adm_my_files/config.php');
 }
-elseif(is_file('../../config.php'))
-{
-    // config file at destination of version 2.0 exists -> copy config file to new destination
-    if(!@copy('../../config.php', '../../adm_my_files/config.php'))
-    {
-        exit('<div style="color: #cc0000;">Error: The file <strong>config.php</strong> could not be copied to the folder <strong>adm_my_files</strong>.
-            Please check if this folder has the necessary write rights. If it\'s not possible to set this right then copy the
-            config.php from the Admidio main folder to adm_my_files with your FTP program.</div>');
-    }
-    require_once('../../adm_my_files/config.php');
-}
 else
 {
     // no config file exists -> go to installation
@@ -129,28 +118,16 @@ $installedDbBetaVersion = '';
 $maxUpdateStep          = 0;
 $currentUpdateStep      = 0;
 
-if(!$gDb->query('SELECT 1 FROM '.TBL_COMPONENTS, false))
-{
-    // in Admidio version 2 the database version was stored in preferences table
-    if(isset($gPreferences['db_version']))
-    {
-        $installedDbVersion     = $gPreferences['db_version'];
-        $installedDbBetaVersion = $gPreferences['db_version_beta'];
-    }
-}
-else
-{
-    // read system component
-    $componentUpdateHandle = new ComponentUpdate($gDb);
-    $componentUpdateHandle->readDataByColumns(array('com_type' => 'SYSTEM', 'com_name_intern' => 'CORE'));
+// read system component
+$componentUpdateHandle = new ComponentUpdate($gDb);
+$componentUpdateHandle->readDataByColumns(array('com_type' => 'SYSTEM', 'com_name_intern' => 'CORE'));
 
-    if($componentUpdateHandle->getValue('com_id') > 0)
-    {
-        $installedDbVersion     = $componentUpdateHandle->getValue('com_version');
-        $installedDbBetaVersion = (int) $componentUpdateHandle->getValue('com_beta');
-        $currentUpdateStep      = (int) $componentUpdateHandle->getValue('com_update_step');
-        $maxUpdateStep          = $componentUpdateHandle->getMaxUpdateStep();
-    }
+if($componentUpdateHandle->getValue('com_id') > 0)
+{
+    $installedDbVersion     = $componentUpdateHandle->getValue('com_version');
+    $installedDbBetaVersion = (int) $componentUpdateHandle->getValue('com_beta');
+    $currentUpdateStep      = (int) $componentUpdateHandle->getValue('com_update_step');
+    $maxUpdateStep          = $componentUpdateHandle->getMaxUpdateStep();
 }
 
 // if a beta was installed then create the version string with Beta version

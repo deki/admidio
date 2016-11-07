@@ -128,12 +128,6 @@ if(is_file($pathConfigFile))
         exit();
     }
 }
-elseif(is_file('../../config.php'))
-{
-    // Config file found at location of version 2. Then go to update
-    header('Location: update.php');
-    exit();
-}
 
 if($getMode === 1) // (Default) Choose language
 {
