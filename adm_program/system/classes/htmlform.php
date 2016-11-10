@@ -829,29 +829,37 @@ class HtmlForm extends HtmlFormBasic
 
         if ($optionsAll['passwordStrength'])
         {
+            $passwordStrengthLevel = 1;
+            if ($gPreferences['password_min_strength'])
+            {
+                $passwordStrengthLevel = $gPreferences['password_min_strength'];
+            }
+
             if ($this->htmlPage instanceof \HtmlPage)
             {
                 $zxcvbnUserInputs = json_encode($optionsAll['passwordUserData'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                 $javascriptCode = '
+                    $("#admidio-password-strength-minimum").css("margin-left", "calc(" + $("#admidio-password-strength").css("width") + " / 4 * '.$passwordStrengthLevel.')");
+
                     $("#' . $id . '").keyup(function(e) {
                         var result = zxcvbn(e.target.value, ' . $zxcvbnUserInputs . ');
-                        $("#admidio-password-strength-indicator").removeClass().addClass("admidio-password-strength-indicator-" + result.score);
+                        var cssClasses = ["progress-bar-danger", "progress-bar-danger", "progress-bar-warning", "progress-bar-info", "progress-bar-success"];
+
+                        var progressBar = $("#admidio-password-strength .progress-bar");
+                        progressBar.attr("aria-valuenow", result.score * 25);
+                        progressBar.css("width", result.score * 25 + "%");
+                        progressBar.removeClass(cssClasses.join(" "));
+                        progressBar.addClass(cssClasses[result.score]);
                     });
                 ';
                 $this->htmlPage->addJavascriptFile('adm_program/libs/zxcvbn/dist/zxcvbn.js');
                 $this->htmlPage->addJavascript($javascriptCode, true);
             }
 
-            $passwordStrengthLevel = 1;
-            if ($gPreferences['password_min_strength'])
-            {
-                $passwordStrengthLevel = $gPreferences['password_min_strength'];
-            }
             $this->addHtml('
-                <div id="admidio-password-strength" class="' . $optionsAll['class'] . '">
-                    <div id="admidio-password-strength-indicator">
-                        <div id="admidio-password-strength-minimum" style="margin-left: calc(' . $passwordStrengthLevel . ' * 25% - 3px);"></div>
-                    </div>
+                <div id="admidio-password-strength" class="progress ' . $optionsAll['class'] . '">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                    <div id="admidio-password-strength-minimum"></div>
                 </div>
             ');
         }

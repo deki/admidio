@@ -360,6 +360,7 @@
     <string name="LST_DEFAULT_LIST_NOT_SET_UP">Es wurde keine Standardliste eingerichtet!\n\nWende dich bitte an einen Administrator, damit dieser in den eigenen Listen eine beliebige Liste als Standardliste deklariert.</string>
     <string name="LST_DELETE_CONFIGURATION">Konfiguration löschen</string>
     <string name="LST_EMAIL_TO_MEMBERS">E-Mail an Mitglieder</string>
+    <string name="LST_EMAIL_TO_LIST">E-Mail an Liste</string>
     <string name="LST_EMPTY_EXAMPLE_DESC">Sucht alle Benutzer, die das Feld Adresse nicht gefüllt haben</string>
     <string name="LST_ERROR_DELETE_DEFAULT_LIST">Die Liste #VAR1_BOLD# ist die Standardkonfiguration für Listen in dieser Organisation und kann nicht gelöscht werden. Wähle in den Moduleinstellungen eine andere Konfiguration zur Standardkonfiguration und versuche danach diese Konfiguration zu löschen.</string>
     <string name="LST_EXCLUDE_EXAMPLE">Stefan</string>
@@ -689,7 +690,7 @@
     <string name="ORG_PARENT_ORGANIZATION">Übergeordnete Organisation</string>
     <string name="ORG_PARENT_ORGANIZATION_DESC">Hier kannst du die übergeordnete Organisation festlegen. Diese haben zum Beispiel die Möglichkeit Termine und Ankündigungen anzulegen, die auch in der aktuellen Organisation sichtbar sind.</string>
     <string name="ORG_PASSWORD_MIN_STRENGTH">Passwort Sicherheit</string>
-    <string name="ORG_PASSWORD_MIN_STRENGTH_DESC">Hier kannst du festlegen wie sicher/komplex Passwörter mindestens sein müssen.\nIn () die geschätzten Versuche bis geknackt.\n\nKeine: riskantes Passwort (&lt;10^3)\nNiedrig: Schutz gegen gedrosselte online Angriffe. (&lt;10^6)\nMittel: Schutz gegen ungedrosselte online Angriffe. (&lt;10^8)\nHoch: Mäßiger schutz gegen offline-hashing Angriffe. (&lt;10^10)\nExtrem: Starker Schutz gegen offline-hashing Angriffe. (&gt;=10^10)</string>
+    <string name="ORG_PASSWORD_MIN_STRENGTH_DESC">Hier kannst du festlegen wie sicher und komplex Passwörter mindestens sein müssen.\nDer Wert in Klammern gibt an, wieviele Versuche durchschnittlich nötig sind, bis das Passwort ermittelt wurde.\n\nKeine: riskantes Passwort. (&lt;10^3)\nNiedrig: Schutz gegen gedrosselte Online-Angriffe. (&lt;10^6)\nMittel: Schutz gegen ungedrosselte Online-Angriffe. (&lt;10^8)\nHoch: Mäßiger Schutz gegen Offline-Hashing-Angriffe. (&lt;10^10)\nExtrem: Starker Schutz gegen Offline-Hashing-Angriffe. (&gt;=10^10)</string>
     <string name="ORG_PASSWORD_MIN_STRENGTH_NO">Keine</string>
     <string name="ORG_PASSWORD_MIN_STRENGTH_LOW">Niedrig</string>
     <string name="ORG_PASSWORD_MIN_STRENGTH_MID">Mittel</string>
@@ -861,7 +862,7 @@
     <string name="PRO_NO_DEFAULT_ROLE">In der Rollenverwaltung wurde keine Standardrolle für neue Benutzer hinterlegt. Wende dich bitte an einen Administrator, der diese Einstellung vornehmen kann.</string>
     <string name="PRO_NO_ROLES_VISIBLE">Es wurden keine Rollen gefunden. Ggf. fehlen dir die Rechte bestimmte Rollen zu sehen.</string>
     <string name="PRO_PASSWORD_CHANGED">Das Passwort wurde erfolgreich geändert.</string>
-    <string name="PRO_PASSWORD_DESCRIPTION">Das Passwort muss aus mindestens 8 Zeichen bestehen. Es sollte sowohl Zahlen, Buchstaben als auch Sonderzeichen beinhalten.\n\nAus Sicherheitsgründen wird das Passwort verschlüsselt gespeichert. Es ist später nicht mehr möglich dieses einzusehen.</string>
+    <string name="PRO_PASSWORD_DESCRIPTION">Das Passwort muss aus mindestens 8 Zeichen bestehen. Es sollte sowohl Zahlen, Buchstaben als auch Sonderzeichen beinhalten.\n\nDie Stärke deines gewählten Passworts wird dir farblich über einen Balken dargestellt. Die mindestens notwendige Stärke zeigt dir der Pfeil im Balken an.</string>
     <string name="PRO_PASSWORD_LENGTH">Das Passwort muss aus mindestens 8 Zeichen bestehen.</string>
     <string name="PRO_PASSWORD_OLD_WRONG">Das alte Passwort ist falsch.</string>
     <string name="PRO_PASSWORDS_NOT_EQUAL">Das Passwort stimmt nicht mit der Wiederholung überein.</string>

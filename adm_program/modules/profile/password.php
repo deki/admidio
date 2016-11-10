@@ -124,15 +124,29 @@ elseif($getMode === 'html')
 
     $zxcvbnUserInputs = json_encode($user->getPasswordUserData(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
+    $passwordStrengthLevel = 1;
+    if ($gPreferences['password_min_strength'])
+    {
+        $passwordStrengthLevel = $gPreferences['password_min_strength'];
+    }
+
     echo '<script type="text/javascript">
         $(function() {
             $("body").on("shown.bs.modal", ".modal", function () {
                 $("#password_form:first *:input[type!=hidden]:first").focus();
-            });
 
-            $("#new_password").keyup(function(e) {
-                var result = zxcvbn(e.target.value, '.$zxcvbnUserInputs.');
-                $("#admidio-password-strength-indicator").removeClass().addClass("admidio-password-strength-indicator-" + result.score);
+                $("#admidio-password-strength-minimum").css("margin-left", "calc(" + $("#admidio-password-strength").css("width") + " / 4 * '.$passwordStrengthLevel.')");
+
+                $("#new_password").keyup(function(e) {
+                    var result = zxcvbn(e.target.value, ' . $zxcvbnUserInputs . ');
+                    var cssClasses = ["progress-bar-danger", "progress-bar-danger", "progress-bar-warning", "progress-bar-info", "progress-bar-success"];
+
+                    var progressBar = $("#admidio-password-strength .progress-bar");
+                    progressBar.attr("aria-valuenow", result.score * 25);
+                    progressBar.css("width", result.score * 25 + "%");
+                    progressBar.removeClass(cssClasses.join(" "));
+                    progressBar.addClass(cssClasses[result.score]);
+                });
             });
 
             $("#password_form").submit(function(event) {
