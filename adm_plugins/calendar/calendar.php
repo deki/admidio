@@ -307,7 +307,7 @@ if($plg_ter_aktiv)
 // query of all birthdays
 if($plg_geb_aktiv)
 {
-    if($gDbType === 'pgsql' || $gDbType === 'postgresql') // for backwards compatibility "postgresql"
+    if($gDbType === 'pgsql')
     {
         $sqlMonthOfBirthday = ' date_part(\'month\', timestamp birthday.usd_value) ';
         $sqlDayOfBirthday   = ' date_part(\'day\', timestamp birthday.usd_value) ';

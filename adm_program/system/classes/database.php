@@ -91,12 +91,6 @@ class Database
     {
         global $gLogger;
 
-        // for compatibility to old versions accept the string postgresql
-        if ($engine === 'postgresql')
-        {
-            $engine = 'pgsql';
-        }
-
         $this->host     = $host;
         $this->port     = $port;
         $this->dbName   = $dbName;
