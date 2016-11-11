@@ -7,8 +7,6 @@
  ***********************************************************************************************
  */
 
-// provide forward compatibility with the password_* functions that ship with PHP 5.5
-require_once(ADMIDIO_PATH . FOLDER_LIBS_SERVER . '/password_compat/password.php');
 // provide forward compatibility with the random_* functions that ship with PHP 7.0
 require_once(ADMIDIO_PATH . FOLDER_LIBS_SERVER . '/random_compat/lib/random.php');
 // old phpass password hashing lib for backward compatibility
@@ -18,7 +16,6 @@ require_once(ADMIDIO_PATH . FOLDER_LIBS_SERVER . '/phpass/passwordhash.php');
  * @class PasswordHashing
  *
  * This class provides static functions for different tasks for passwords and hashing
- * It used the "password_compat" lib to provide forward compatibility with the password_* functions that ship with PHP 5.5
  * It used the "random_compat" lib to provide forward compatibility with the random_* functions that ship with PHP 7.0
  * It used the "phpass" lib to provide backward compatibility to the old password hashing way
  *
