@@ -4,7 +4,7 @@
  * Basic script for all other Admidio scripts with all the necessary data und
  * variables to run a script in the Admidio environment
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -47,11 +47,20 @@ else
 // LOGGING
 require_once(ADMIDIO_PATH . '/adm_program/system/logging.php');
 
-// remove HTML & PHP-Code from all parameters
-// escape all quotes so db queries are save
-$_GET    = strAddSlashesDeep(admStrStripTagsSpecial($_GET));
-$_POST   = strAddSlashesDeep(admStrStripTagsSpecial($_POST));
-$_COOKIE = strAddSlashesDeep(admStrStripTagsSpecial($_COOKIE));
+// Force permanent HTTPS redirect
+if (isset($gForceHTTPS) && $gForceHTTPS && !HTTPS)
+{
+    $url = str_replace('http://', 'https://', CURRENT_URL);
+
+    $gLogger->notice('REDIRECT: Redirecting permanent to HTTPS!', array('url' => $url, 'statusCode' => 301));
+
+    header('Location: ' . $url, true, 301);
+    exit();
+}
+
+// Remove HTML & PHP-Code and escape all quotes from all request parameters
+// If debug is on and change is made, log it
+require_once(ADMIDIO_PATH . '/adm_program/system/global_request_params.php');
 
 // global parameters
 $gValidLogin = false;
@@ -104,7 +113,8 @@ if(array_key_exists('gCurrentSession', $_SESSION) && $_SESSION['gCurrentSession'
     // read system component
     $gSystemComponent =& $gCurrentSession->getObject('gSystemComponent');
     // read language data from session and assign them to the language object
-    $gL10n->addLanguageData($gCurrentSession->getObject('gLanguageData'));
+    $gLanguageData =& $gCurrentSession->getObject('gLanguageData');
+    $gL10n->addLanguageData($gLanguageData);
     // read organization data from session object
     $gCurrentOrganization =& $gCurrentSession->getObject('gCurrentOrganization');
     $gPreferences = $gCurrentOrganization->getPreferences();
@@ -245,7 +255,9 @@ try
 }
 catch(AdmException $e)
 {
-    $e->showHtml();
+    $gMessage->showThemeBody(false);
+    $gMessage->hideButtons();
+    $gMessage->show($e->getText(), 'Admidio - '.$gL10n->get('INS_UPDATE'));
 }
 
 // set default homepage

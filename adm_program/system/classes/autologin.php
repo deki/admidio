@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -109,17 +109,17 @@ class AutoLogin extends TableAccess
         $currDateTime = new DateTime();
         $oneYearDateInterval = new DateInterval('P1Y');
         $oneYearBeforeDateTime = $currDateTime->sub($oneYearDateInterval);
-        $dateSessionDelete = $oneYearBeforeDateTime->format('Y.m.d H:i:s');
+        $dateSessionDelete = $oneYearBeforeDateTime->format('Y-m-d H:i:s');
 
         $sql = 'DELETE FROM '.TBL_AUTO_LOGIN.'
-                 WHERE atl_last_login < \''.$dateSessionDelete.'\'';
-        $this->db->query($sql);
+                 WHERE atl_last_login < ? -- $dateSessionDelete';
+        $this->db->queryPrepared($sql, array($dateSessionDelete));
 
         // reset all counted wrong auto login ids from this user to prevent
         // a deadlock if user has auto login an several devices and they were
         // set invalid for security reasons
         $sql = 'UPDATE '.TBL_AUTO_LOGIN.' SET atl_number_invalid = 0
-                 WHERE atl_usr_id = '.$this->getValue('atl_usr_id');
-        $this->db->query($sql);
+                 WHERE atl_usr_id = ? -- $this->getValue(\'atl_usr_id\')';
+        $this->db->queryPrepared($sql, array($this->getValue('atl_usr_id')));
     }
 }

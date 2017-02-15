@@ -3,13 +3,13 @@
  ***********************************************************************************************
  * Overview and maintenance of all relationtypes
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 if ($gPreferences['members_enable_user_relations'] == 0)
 {
@@ -56,8 +56,9 @@ $relationtypesOverview->addRowHeadingByArray($columnHeading);
 $sql = 'SELECT urt1.*, urt2.urt_name AS urt_name_inverse, urt2.urt_name_male AS urt_name_male_inverse, urt2.urt_name_female AS urt_name_female_inverse
           FROM '.TBL_USER_RELATION_TYPES.' AS urt1
     LEFT OUTER JOIN '.TBL_USER_RELATION_TYPES.' AS urt2
-            ON urt1.urt_id_inverse=urt2.urt_id
-         WHERE urt1.urt_id <= urt1.urt_id_inverse OR urt1.urt_id_inverse IS NULL
+            ON urt1.urt_id_inverse = urt2.urt_id
+         WHERE urt1.urt_id <= urt1.urt_id_inverse
+            OR urt1.urt_id_inverse IS NULL
       ORDER BY urt1.urt_name, urt2.urt_name';
 
 $relationtypesStatement = $gDb->query($sql);
@@ -66,17 +67,17 @@ $relationtype1 = new TableUserRelationType($gDb);
 $relationtype2 = new TableUserRelationType($gDb);
 
 // Get data
-while($rel_row = $relationtypesStatement->fetch())
+while($relRow = $relationtypesStatement->fetch())
 {
     $relationtype1->clear();
-    $relationtype1->setArray($rel_row);
+    $relationtype1->setArray($relRow);
     $relationtype2->clear();
-    $rel_row2 = $rel_row;
-    $rel_row2['urt_id'] = $rel_row2['urt_id_inverse'];
-    $rel_row2['urt_name'] = $rel_row2['urt_name_inverse'];
-    $rel_row2['urt_name_male'] = $rel_row2['urt_name_male_inverse'];
-    $rel_row2['urt_name_female'] = $rel_row2['urt_name_female_inverse'];
-    $relationtype2->setArray($rel_row2);
+    $relRow2 = $relRow;
+    $relRow2['urt_id'] = $relRow2['urt_id_inverse'];
+    $relRow2['urt_name'] = $relRow2['urt_name_inverse'];
+    $relRow2['urt_name_male'] = $relRow2['urt_name_male_inverse'];
+    $relRow2['urt_name_female'] = $relRow2['urt_name_female_inverse'];
+    $relationtype2->setArray($relRow2);
 
     $relationtypeAdministration = '<a class="admidio-icon-link" href="'.ADMIDIO_URL.FOLDER_MODULES.'/userrelations/relationtypes_new.php?urt_id='. $relationtype1->getValue('urt_id'). '"><img
                                     src="'. THEME_URL. '/icons/edit.png" alt="'.$gL10n->get('SYS_EDIT').'" title="'.$gL10n->get('SYS_EDIT').'" /></a>';
@@ -87,9 +88,9 @@ while($rel_row = $relationtypesStatement->fetch())
 
     // create array with all column values
     $columnValues = array(
-            $relationtype1->getValue('urt_name'),
-            $relationtype2->getValue('urt_name'),
-            $relationtypeAdministration
+        $relationtype1->getValue('urt_name'),
+        $relationtype2->getValue('urt_name'),
+        $relationtypeAdministration
     );
     $relationtypesOverview->addRowByArray($columnValues, 'row_'. $relationtype1->getValue('urt_id'));
 }

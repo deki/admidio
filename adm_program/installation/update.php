@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Handle update of Admidio database to a new version
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -60,7 +60,7 @@ catch (AdmException $e)
 {
     showNotice(
         $gL10n->get('SYS_DATABASE_NO_LOGIN', $e->getText()),
-        'installation.php?mode=3',
+        'installation.php?step=connect_database',
         $gL10n->get('SYS_BACK'),
         'layout/back.png'
     );
@@ -282,8 +282,8 @@ elseif ($getMode === 2)
         // Search for username
         $sql = 'SELECT usr_id
                   FROM '.TBL_USERS.'
-                 WHERE UPPER(usr_login_name) = UPPER(\''.$loginName.'\')';
-        $userStatement = $gDb->query($sql);
+                 WHERE UPPER(usr_login_name) = UPPER(?)';
+        $userStatement = $gDb->queryPrepared($sql, array($loginName));
 
         if ($userStatement->rowCount() === 0)
         {
@@ -333,26 +333,26 @@ elseif ($getMode === 2)
     ++$versionPatch;
 
     // erst einmal die evtl. neuen Orga-Einstellungen in DB schreiben
-    require_once('db_scripts/preferences.php');
+    require_once(__DIR__ . '/db_scripts/preferences.php');
 
     // calculate the best cost value for your server performance
     $benchmarkResults = PasswordHashing::costBenchmark(0.35, 'password', $gPasswordHashAlgorithm);
-    $orga_preferences['system_hashing_cost'] = $benchmarkResults['cost'];
+    $updateOrgPreferences = array('system_hashing_cost' => $benchmarkResults['cost']);
 
     $sql = 'SELECT org_id FROM ' . TBL_ORGANIZATIONS;
     $orgaStatement = $gDb->query($sql);
 
     while($orgId = $orgaStatement->fetchColumn())
     {
-        $gCurrentOrganization->setValue('org_id', $orgId);
-        $gCurrentOrganization->setPreferences($orga_preferences, false);
+        $organization = new Organization($gDb, $orgId);
+        $organization->setPreferences($defaultOrgPreferences, false);
+        $organization->setPreferences($updateOrgPreferences, true);
     }
 
     if ($gDbType === 'mysql')
     {
         // disable foreign key checks for mysql, so tables can easily deleted
-        $sql = 'SET foreign_key_checks = 0';
-        $gDb->query($sql);
+        $gDb->query('SET foreign_key_checks = 0');
     }
 
     disableSoundexSearchIfPgsql($gDb);
@@ -361,8 +361,10 @@ elseif ($getMode === 2)
     if ($versionMain >= 3)
     {
         // set system user as current user, but this user only exists since version 3
-        $sql = 'SELECT usr_id FROM ' . TBL_USERS . ' WHERE usr_login_name = \'' . $gL10n->get('SYS_SYSTEM') . '\'';
-        $systemUserStatement = $gDb->query($sql);
+        $sql = 'SELECT usr_id
+                  FROM ' . TBL_USERS . '
+                 WHERE usr_login_name = ?';
+        $systemUserStatement = $gDb->queryPrepared($sql, array($gL10n->get('SYS_SYSTEM')));
 
         $gCurrentUser = new User($gDb, $gProfileFields, (int) $systemUserStatement->fetchColumn());
 
@@ -376,8 +378,7 @@ elseif ($getMode === 2)
     if ($gDbType === 'mysql')
     {
         // activate foreign key checks, so database is consistent
-        $sql = 'SET foreign_key_checks = 1';
-        $gDb->query($sql);
+        $gDb->query('SET foreign_key_checks = 1');
     }
 
     // nach dem Update erst einmal bei Sessions das neue Einlesen des Organisations- und Userobjekts erzwingen

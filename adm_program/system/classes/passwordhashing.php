@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -147,7 +147,7 @@ class PasswordHashing
      * Generate a cryptographically strong random password
      * @param int    $length  The length of the generated password (default = 16)
      * @param string $charset A string of all possible characters to choose from (default = [0-9a-zA-z])
-     * @throws AdmException SYS_GEN_RANDOM_TWO_DISTINCT_CHARS, SYS_GEN_RANDOM_ERROR, SYS_GEN_RANDOM_FAIL
+     * @throws AdmException SYS_GEN_RANDOM_TWO_DISTINCT_CHARS
      * @return string Returns a cryptographically strong random password string
      * @link https://paragonie.com/b/JvICXzh_jhLyt4y3
      */
@@ -174,8 +174,8 @@ class PasswordHashing
         $randomString = '';
         for ($i = 0; $i < $length; ++$i)
         {
-            $r = self::genRandomInt(0, $charsetMax);
-            $randomString .= $charset[$r];
+            $randomInt = self::genRandomInt(0, $charsetMax);
+            $randomString .= $charset[$randomInt];
         }
 
         return $randomString;
@@ -185,24 +185,27 @@ class PasswordHashing
      * Generate a cryptographically strong random integer
      * @param int $min The min of the range (inclusive)
      * @param int $max The max of the range (inclusive)
-     * @throws AdmException SYS_GEN_RANDOM_ERROR, SYS_GEN_RANDOM_FAIL
      * @return int Returns a cryptographically strong random integer
      */
     public static function genRandomInt($min, $max)
     {
+        global $gLogger;
+
         try
         {
             $int = random_int($min, $max);
         }
         catch (Error $e)
         {
-            // An unexpected error has occurred
-            throw new AdmException('SYS_GEN_RANDOM_ERROR');
+            // as a fallback we should use the rand method
+            $int = mt_rand($min, $max);
+            $gLogger->warning('SECURITY: Could not generate secure random number!', array('code' => $e->getCode(), 'message' => $e->getMessage()));
         }
         catch (Exception $e)
         {
-            // If you get this message, the CSPRNG failed hard.
-            throw new AdmException('SYS_GEN_RANDOM_FAIL');
+            // as a fallback we should use the rand method
+            $int = mt_rand($min, $max);
+            $gLogger->warning('SECURITY: Could not generate secure random number!', array('code' => $e->getCode(), 'message' => $e->getMessage()));
         }
 
         return $int;

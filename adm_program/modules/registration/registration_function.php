@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Neuen User zuordnen - Funktionen
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -21,8 +21,8 @@
  *
  *****************************************************************************/
 
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getMode      = admFuncVariableIsValid($_GET, 'mode',        'int', array('requireValue' => true));
@@ -78,6 +78,7 @@ if($getMode === 1 || $getMode === 2)
         $user->save();
         $gMessage->setForwardUrl($gNavigation->getPreviousUrl());
         $e->showHtml();
+        // => EXIT
     }
 }
 
@@ -100,9 +101,9 @@ if($getMode === 1 || $getMode === 3)
         try
         {
             // Mail an den User schicken, um die Anmeldung bwz. die Zuordnung zur neuen Orga zu bestaetigen
-            $sysmail = new SystemMail($gDb);
-            $sysmail->addRecipient($user->getValue('EMAIL'), $user->getValue('FIRST_NAME'). ' '. $user->getValue('LAST_NAME'));
-            $sysmail->sendSystemMail('SYSMAIL_REGISTRATION_USER', $user);
+            $systemMail = new SystemMail($gDb);
+            $systemMail->addRecipient($user->getValue('EMAIL'), $user->getValue('FIRST_NAME'). ' '. $user->getValue('LAST_NAME'));
+            $systemMail->sendSystemMail('SYSMAIL_REGISTRATION_USER', $user);
 
             $gMessage->show($gL10n->get('NWU_ASSIGN_LOGIN_EMAIL', $user->getValue('EMAIL')));
             // => EXIT
@@ -110,6 +111,7 @@ if($getMode === 1 || $getMode === 3)
         catch(AdmException $e)
         {
             $e->showHtml();
+            // => EXIT
         }
     }
     else
@@ -145,6 +147,7 @@ elseif($getMode === 5)
     {
         $gMessage->setForwardUrl($gNavigation->getPreviousUrl());
         $e->showHtml();
+        // => EXIT
     }
 
     // if current user has the right to assign roles then show roles dialog
@@ -174,6 +177,7 @@ elseif($getMode === 6)
     {
         $gMessage->setForwardUrl($gNavigation->getPreviousUrl());
         $e->showHtml();
+        // => EXIT
     }
 
     // Zugangsdaten neu verschicken

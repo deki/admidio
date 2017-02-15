@@ -3,12 +3,12 @@
  ***********************************************************************************************
  * Iconszuordnung zu Dateiendungen
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
-$icon_file_extension = array(
+$iconFileExtension = array(
     'bmp'  => 'page_white_camera.png',
     'cdr'  => 'page_white_camera.png',
     'gif'  => 'page_white_camera.png',

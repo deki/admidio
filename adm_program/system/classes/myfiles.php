@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class manages the AdmMyFiles folder
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -38,8 +38,6 @@ class MyFiles extends Folder
      */
     public function __construct($module)
     {
-        global $gCurrentOrganization;
-
         if($module === 'DOWNLOAD')
         {
             $folderName = TableFolder::getRootFolderName();
@@ -88,15 +86,12 @@ class MyFiles extends Folder
                         }
                     }
 
-                    if(!is_writable($serverPathAdmMyFiles))
+                    // set "adm_my_files" writable
+                    if(!@chmod($serverPathAdmMyFiles, 0777))
                     {
-                        // set "adm_my_files" writable
-                        if(!chmod($serverPathAdmMyFiles, 0777))
-                        {
-                            $this->errorText = 'SYS_FOLDER_WRITE_ACCESS';
-                            $this->errorPath = $this->webPath;
-                            return false;
-                        }
+                        $this->errorText = 'SYS_FOLDER_WRITE_ACCESS';
+                        $this->errorPath = $this->webPath;
+                        return false;
                     }
                 }
 
@@ -104,6 +99,14 @@ class MyFiles extends Folder
                 if(!@mkdir($this->modulePath, 0777) && !is_dir($this->modulePath)) // [1]
                 {
                     $this->errorText = 'SYS_FOLDER_NOT_CREATED';
+                    $this->errorPath = $this->webPath;
+                    return false;
+                }
+
+                // set "adm_my_files" writable
+                if(!@chmod($this->modulePath, 0777))
+                {
+                    $this->errorText = 'SYS_FOLDER_WRITE_ACCESS';
                     $this->errorPath = $this->webPath;
                     return false;
                 }
@@ -123,7 +126,7 @@ class MyFiles extends Folder
             if(!is_writable($this->modulePath))
             {
                 // set module folder writable
-                if(!chmod($this->folderWithPath, 0777))
+                if(!@chmod($this->folderWithPath, 0777))
                 {
                     $this->errorText = 'SYS_FOLDER_WRITE_ACCESS';
                     $this->errorPath = $this->webPath;
@@ -179,7 +182,7 @@ class MyFiles extends Folder
         // set folder writable
         if (!is_writable($tempServerPath))
         {
-            if (!chmod($tempServerPath, 0777))
+            if (!@chmod($tempServerPath, 0777))
             {
                 $this->errorText = 'SYS_FOLDER_WRITE_ACCESS';
                 $this->errorPath = $tempWebPath;

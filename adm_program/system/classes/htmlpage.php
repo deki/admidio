@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -441,6 +441,7 @@ class HtmlPage
     {
         global $gL10n, $gDb, $gCurrentSession, $gCurrentOrganization, $gCurrentUser, $gPreferences;
         global $gValidLogin, $gProfileFields, $gHomepage, $gDbType;
+        global $g_root_path; // Deprecated
 
         $headerContent    = '';
         $htmlMyHeader     = '';
@@ -458,7 +459,14 @@ class HtmlPage
 
         if($this->headline !== '')
         {
-            $htmlHeadline = '<h1>'.$this->headline.'</h1>';
+            if($this->hasNavbar)
+            {
+                $htmlHeadline = '<h1 class="admidio-module-headline hidden-xs">'.$this->headline.'</h1>';
+            }
+            else
+            {
+                $htmlHeadline = '<h1 class="admidio-module-headline">'.$this->headline.'</h1>';
+            }
         }
 
         // add admidio css file at last because there the user can redefine all css
@@ -534,7 +542,12 @@ class HtmlPage
         // add code for a modal window
         if($this->showModal)
         {
-            $this->addJavascript('$("body").on("hidden.bs.modal", ".modal", function () { $(this).removeData("bs.modal"); });', true);
+            $this->addJavascript('
+                $("body").on("hidden.bs.modal", ".modal", function() {
+                    $(this).removeData("bs.modal");
+                });',
+                true
+            );
             $this->addHtml('<div class="modal fade" id="admidio_modal" tabindex="-1" role="dialog" aria-hidden="true">
                                 <div class="modal-dialog"><div class="modal-content"></div></div>
                             </div>');
@@ -562,11 +575,11 @@ class HtmlPage
             <!DOCTYPE html>
             <html>
             <head>
-                <!-- (c) 2004 - 2016 The Admidio Team - https://www.admidio.org/ -->
+                <!-- (c) 2004 - 2017 The Admidio Team - https://www.admidio.org/ -->
 
-                <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-                <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
 
                 <title>'.$this->title.'</title>
 
@@ -587,12 +600,6 @@ class HtmlPage
         $html .= '</div>';
         $html .= $htmlMyBodyBottom;
         $html .= '</body></html>';
-
-        if($this->hasNavbar)
-        {
-            // set css class to hide headline in mobile mode if navbar is shown
-            $html = str_replace('<h1>'.$this->headline.'</h1>', '<h1 class="hidden-xs">'.$this->headline.'</h1>', $html);
-        }
 
         // now show the complete html of the page
         if($directOutput)

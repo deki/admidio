@@ -3,14 +3,14 @@
  ***********************************************************************************************
  * Show and manage all items of inventory
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
  * Parameters:
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // only users with the right to edit inventory could use this script
 if (!$gCurrentUser->editInventory())
@@ -33,13 +33,13 @@ $sql = 'SELECT inv_id, item_name.ind_value AS item_name, room_id.ind_value AS ro
           FROM '.TBL_INVENT.'
     INNER JOIN '.TBL_INVENT_DATA.' AS item_name
             ON item_name.ind_itm_id = inv_id
-           AND item_name.ind_inf_id = '. $gInventoryFields->getProperty('ITEM_NAME', 'inf_id'). '
+           AND item_name.ind_inf_id = ? -- $gInventoryFields->getProperty(\'ITEM_NAME\', \'inf_id\')
     INNER JOIN '.TBL_INVENT_DATA.' AS room_id
             ON room_id.ind_itm_id = inv_id
-           AND room_id.ind_inf_id = '. $gInventoryFields->getProperty('ROOM_ID', 'inf_id'). '
+           AND room_id.ind_inf_id = ? -- $gInventoryFields->getProperty(\'ROOM_ID\', \'inf_id\')
          WHERE inv_valid = 1
       ORDER BY item_name.ind_value, room_id.ind_value ';
-$mglStatement = $gDb->query($sql);
+$mglStatement = $gDb->queryPrepared($sql, array($gInventoryFields->getProperty('ITEM_NAME', 'inf_id'), $gInventoryFields->getProperty('ROOM_ID', 'inf_id')));
 
 // create html page object
 $page = new HtmlPage($headline);

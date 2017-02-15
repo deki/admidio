@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class handle role rights, cards and other things of users
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -89,8 +89,8 @@ class User extends TableAccess
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = rol_cat_id
                  WHERE rol_default_registration = 1
-                   AND cat_org_id = '.$this->organizationId;
-        $defaultRolesStatement = $this->db->query($sql);
+                   AND cat_org_id = ? -- $this->organizationId';
+        $defaultRolesStatement = $this->db->queryPrepared($sql, array($this->organizationId));
 
         if ($defaultRolesStatement->rowCount() === 0)
         {
@@ -152,13 +152,14 @@ class User extends TableAccess
                         ON cat_id = rol_cat_id
                  LEFT JOIN '.TBL_MEMBERS.'
                         ON mem_rol_id = rol_id
-                       AND mem_usr_id = '.$this->getValue('usr_id').'
-                       AND mem_begin <= \''.DATE_NOW.'\'
-                       AND mem_end    > \''.DATE_NOW.'\'
+                       AND mem_usr_id = ? -- $this->getValue(\'usr_id\')
+                       AND mem_begin <= ? -- DATE_NOW
+                       AND mem_end    > ? -- DATE_NOW
                      WHERE rol_valid  = 1
-                       AND (  cat_org_id = '.$this->organizationId.'
+                       AND (  cat_org_id = ? -- $this->organizationId
                            OR cat_org_id IS NULL )';
-            $rolesStatement = $this->db->query($sql);
+            $queryParams = array($this->getValue('usr_id'), DATE_NOW, DATE_NOW, $this->organizationId);
+            $rolesStatement = $this->db->queryPrepared($sql, $queryParams);
 
             while ($row = $rolesStatement->fetch())
             {
@@ -177,7 +178,7 @@ class User extends TableAccess
 
                         // if role leader could assign new members then remember this setting
                         // roles for confirmation of dates should be ignored
-                        if ($row['cat_name_intern'] !== 'CONFIRMATION_OF_PARTICIPATION'
+                        if ($row['cat_name_intern'] !== 'EVENTS'
                         && ($rolLeaderRights === ROLE_LEADER_MEMBERS_ASSIGN || $rolLeaderRights === ROLE_LEADER_MEMBERS_ASSIGN_EDIT))
                         {
                             $this->assignRoles = true;
@@ -299,10 +300,8 @@ class User extends TableAccess
 
         $invalidLoginCount = (int) $this->getValue('usr_number_invalid');
 
-        if ($invalidLoginCount >= 3 && $minutesBefore->getTimestamp() > $dateInvalid->getTimestamp())
+        if ($invalidLoginCount >= 3 && $minutesBefore->getTimestamp() <= $dateInvalid->getTimestamp())
         {
-            $this->clear();
-
             $loggingObject = array(
                 'username'      => $this->getValue('usr_login_name'),
                 'password'      => '******',
@@ -310,6 +309,8 @@ class User extends TableAccess
                 'dateInvalid'   => $this->getValue('usr_date_invalid', 'Y-m-d H:i:s')
             );
             $gLogger->warning('AUTHENTICATION: Maximum number of invalid login!', $loggingObject);
+
+            $this->clear();
 
             return $gL10n->get('SYS_LOGIN_MAX_INVALID_LOGIN');
         }
@@ -341,16 +342,18 @@ class User extends TableAccess
                 'dateInvalid'   => $this->getValue('usr_date_invalid', 'Y-m-d H:i:s')
             );
 
-            $this->clear();
-
             if ($this->getValue('usr_number_invalid') >= 3)
             {
                 $gLogger->warning('AUTHENTICATION: Maximum number of invalid login!', $loggingObject);
+
+                $this->clear();
 
                 return $gL10n->get('SYS_LOGIN_MAX_INVALID_LOGIN');
             }
 
             $gLogger->warning('AUTHENTICATION: Incorrect username/password!', $loggingObject);
+
+            $this->clear();
 
             return $gL10n->get('SYS_LOGIN_USERNAME_PASSWORD_INCORRECT');
         }
@@ -369,56 +372,79 @@ class User extends TableAccess
             return $gL10n->get('SYS_LOGIN_NOT_ACTIVATED');
         }
 
+        $sql = 'SELECT org_longname
+                  FROM '.TBL_ORGANIZATIONS.'
+                 WHERE org_id = ?';
+        $orgStatement = $this->db->queryPrepared($sql, array($this->organizationId));
+        $org = $orgStatement->fetch();
+
         $sqlAdministrator = '';
-        if ($isAdministrator)
+        // only check for administrator role if version > 3.1 because before it was webmaster role
+        if ($isAdministrator && version_compare($installedDbVersion, '3.2', '>='))
         {
-            // only check for administrator role if version > 3.1 because before it was webmaster role
-            if (version_compare($installedDbVersion, '3.2.0', '>='))
-            {
-                $sqlAdministrator = ', rol_administrator AS administrator';
-            }
-            // only check for webmaster role if version > 2.3 because before we don't have that flag
-            else
-            {
-                $sqlAdministrator = ', rol_webmaster AS administrator';
-            }
+            $sqlAdministrator = ', rol_administrator AS administrator';
+        }
+        // only check for webmaster role if version > 2.3 because before we don't have that flag
+        elseif ($isAdministrator && version_compare($installedDbVersion, '2.4', '>='))
+        {
+            $sqlAdministrator = ', rol_webmaster AS administrator';
         }
 
         // Check if user is currently member of a role of an organisation
-        $sql = 'SELECT DISTINCT mem_usr_id, org_longname'.$sqlAdministrator.'
+        $sql = 'SELECT DISTINCT mem_usr_id'.$sqlAdministrator.'
                   FROM '.TBL_MEMBERS.'
             INNER JOIN '.TBL_ROLES.'
                     ON rol_id = mem_rol_id
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = rol_cat_id
-            INNER JOIN '.TBL_ORGANIZATIONS.'
-                    ON org_id = cat_org_id
-                 WHERE mem_usr_id = '.$this->getValue('usr_id').'
+                 WHERE mem_usr_id = ? -- $this->getValue(\'usr_id\')
                    AND rol_valid  = 1
-                   AND mem_begin <= \''.DATE_NOW.'\'
-                   AND mem_end    > \''.DATE_NOW.'\'
-                   AND cat_org_id = '.$this->organizationId;
-        $userStatement = $this->db->query($sql);
-        $userRow = $userStatement->fetch();
+                   AND mem_begin <= ? -- DATE_NOW
+                   AND mem_end    > ? -- DATE_NOW
+                   AND cat_org_id = ? -- $this->organizationId';
+        $queryParams = array($this->getValue('usr_id'), DATE_NOW, DATE_NOW, $this->organizationId);
+        $pdoStatement = $this->db->queryPrepared($sql, $queryParams);
+        $rowsCount = $pdoStatement->rowCount();
 
-        $loggingObject = array(
-            'username'     => $this->getValue('usr_login_name'),
-            'password'     => '******',
-            'organisation' => $userRow['org_longname']
-        );
-
-        if ($userStatement->rowCount() === 0)
+        if ($rowsCount === 0)
         {
+            $loggingObject = array(
+                'username'     => $this->getValue('usr_login_name'),
+                'password'     => '******',
+                'organisation' => $org['org_longname']
+            );
+
             $gLogger->warning('AUTHENTICATION: User is not member in this organisation!', $loggingObject);
 
-            return $gL10n->get('SYS_LOGIN_USER_NO_MEMBER_IN_ORGANISATION', $userRow['org_longname']);
+            return $gL10n->get('SYS_LOGIN_USER_NO_MEMBER_IN_ORGANISATION', $org['org_longname']);
         }
 
-        if ($isAdministrator && $userRow['administrator'] == 0)
+        if ($isAdministrator)
         {
-            $gLogger->warning('AUTHENTICATION: User is no administrator!', $loggingObject);
+            if ($rowsCount === 1)
+            {
+                $row = $pdoStatement->fetch();
+                $isAdmin = (bool) $row['administrator'];
+            }
+            else
+            {
+                $rows = $pdoStatement->fetchAll();
+                $isAdmin = $rows[0]['administrator'] || $rows[1]['administrator'];
+            }
 
-            return $gL10n->get('SYS_LOGIN_USER_NO_ADMINISTRATOR', $userRow['org_longname']);
+            if (!$isAdmin && version_compare($installedDbVersion, '2.4', '>='))
+            {
+                $loggingObject = array(
+                    'username'     => $this->getValue('usr_login_name'),
+                    'password'     => '******',
+                    'organisation' => $org['org_longname'],
+                    'admin'        => $isAdmin
+                );
+
+                $gLogger->warning('AUTHENTICATION: User is no administrator!', $loggingObject);
+
+                return $gL10n->get('SYS_LOGIN_USER_NO_ADMINISTRATOR', $org['org_longname']);
+            }
         }
 
         // Rehash password if the hash is outdated and rehashing is enabled
@@ -497,7 +523,7 @@ class User extends TableAccess
     /**
      * Deletes the selected user of the table and all the many references in other tables.
      * After that the class will be initialize.
-     * @return true|void @b true if no error occurred
+     * @return bool @b true if no error occurred
      */
     public function delete()
     {
@@ -632,7 +658,7 @@ class User extends TableAccess
 
         foreach ($sqlQueries as $sqlQuery)
         {
-            $this->db->query($sqlQuery);
+            $this->db->query($sqlQuery); // TODO add more params
         }
 
         $returnValue = parent::delete();
@@ -835,13 +861,13 @@ class User extends TableAccess
         {
             $vCard[] = 'TEL;HOME;FAX:' . $this->getValue('FAX');
         }
-        if ($this->isAllowedToEditVCardUserField($allowedToEditProfile, 'ADDRESS')
+        if ($this->isAllowedToEditVCardUserField($allowedToEditProfile, 'STREET')
         &&  $this->isAllowedToEditVCardUserField($allowedToEditProfile, 'CITY')
         &&  $this->isAllowedToEditVCardUserField($allowedToEditProfile, 'POSTCODE')
         &&  $this->isAllowedToEditVCardUserField($allowedToEditProfile, 'COUNTRY'))
         {
             $vCard[] = 'ADR;CHARSET=ISO-8859-1;HOME:;;' .
-                utf8_decode($this->getValue('ADDRESS',  'database')) . ';' .
+                utf8_decode($this->getValue('STREET',  'database')) . ';' .
                 utf8_decode($this->getValue('CITY',     'database')) . ';;' .
                 utf8_decode($this->getValue('POSTCODE', 'database')) . ';' .
                 utf8_decode($this->getValue('COUNTRY',  'database'));
@@ -1004,6 +1030,27 @@ class User extends TableAccess
     }
 
     /**
+     * Checks the necessary rights if this user could view former roles members. Therefore
+     * the user must also have the right to view the role. So you must also check this right.
+     * @return bool Return @b true if the user has the right to view former roles members
+     */
+    public function hasRightViewFormerRolesMembers()
+    {
+        global $gPreferences;
+
+        if($gPreferences['lists_show_former_members'] === '1' && $this->checkRolesRight('rol_assign_roles'))
+        {
+            return true;
+        }
+        elseif($gPreferences['lists_show_former_members'] === '2' && $this->checkRolesRight('rol_edit_user'))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Checks if the current user is allowed to view the profile of the user of the parameter.
      * If will check if user has edit rights with method editProfile or if the user is a member
      * of a role where the current user has the right to view profiles.
@@ -1039,12 +1086,13 @@ class User extends TableAccess
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = rol_cat_id
                  WHERE rol_valid  = 1
-                   AND mem_begin <= \''.DATE_NOW.'\'
-                   AND mem_end    > \''.DATE_NOW.'\'
-                   AND mem_usr_id = '.$user->getValue('usr_id').'
-                   AND (  cat_org_id = '.$this->organizationId.'
+                   AND mem_usr_id = ? -- $user->getValue(\'usr_id\')
+                   AND mem_begin <= ? -- DATE_NOW
+                   AND mem_end    > ? -- DATE_NOW
+                   AND (  cat_org_id = ? -- $this->organizationId
                        OR cat_org_id IS NULL ) ';
-        $listViewStatement = $this->db->query($sql);
+        $queryParams = array($this->getValue('usr_id'), DATE_NOW, DATE_NOW, $this->organizationId);
+        $listViewStatement = $this->db->queryPrepared($sql, $queryParams);
 
         if ($listViewStatement->rowCount() > 0)
         {
@@ -1301,7 +1349,7 @@ class User extends TableAccess
             // Email
             $this->getValue('EMAIL'),
             // Address
-            $this->getValue('ADDRESS'),
+            $this->getValue('STREET'),
             $this->getValue('CITY'),
             $this->getValue('POSTCODE'),
             $this->getValue('COUNTRY')
@@ -1365,11 +1413,17 @@ class User extends TableAccess
 
             $sql = 'SELECT *
                       FROM '.TBL_MEMBERS.'
-                     WHERE mem_rol_id = '.$id.'
-                       AND mem_usr_id = '.$this->getValue('usr_id').'
-                       AND mem_begin <= \''.$endDate.'\'
-                       AND mem_end   >= \''.$startDate.'\'
+                     WHERE mem_rol_id = ? -- $id
+                       AND mem_usr_id = ? -- $this->getValue(\'usr_id\')
+                       AND mem_begin <= ? -- $endDate
+                       AND mem_end   >= ? -- $startDate
                   ORDER BY mem_begin ASC';
+            $queryParams = array(
+                $id,
+                $this->getValue('usr_id'),
+                $endDate,
+                $startDate
+            );
         }
         else
         {
@@ -1377,14 +1431,21 @@ class User extends TableAccess
 
             $sql = 'SELECT *
                       FROM '.TBL_MEMBERS.'
-                     WHERE mem_id    <> '.$id.'
-                       AND mem_rol_id = '.$member->getValue('mem_rol_id').'
-                       AND mem_usr_id = '.$this->getValue('usr_id').'
-                       AND mem_begin <= \''.$endDate.'\'
-                       AND mem_end   >= \''.$startDate.'\'
+                     WHERE mem_id    <> ? -- $id
+                       AND mem_rol_id = ? -- $member->getValue(\'mem_rol_id\')
+                       AND mem_usr_id = ? -- $this->getValue(\'usr_id\')
+                       AND mem_begin <= ? -- $endDate
+                       AND mem_end   >= ? -- $startDate
                   ORDER BY mem_begin ASC';
+            $queryParams = array(
+                $id,
+                $member->getValue('mem_rol_id'),
+                $this->getValue('usr_id'),
+                $endDate,
+                $startDate
+            );
         }
-        $membershipStatement = $this->db->query($sql);
+        $membershipStatement = $this->db->queryPrepared($sql, $queryParams);
 
         if ($membershipStatement->rowCount() === 1)
         {

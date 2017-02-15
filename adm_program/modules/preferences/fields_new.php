@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Create and edit profile fields
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -12,8 +12,8 @@
  * usf_id : profile field id that should be edited
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getUsfId = admFuncVariableIsValid($_GET, 'usf_id', 'int');
@@ -56,7 +56,7 @@ if($getUsfId > 0)
 
     // Pruefung, ob das Feld zur aktuellen Organisation gehoert
     if($userField->getValue('cat_org_id') > 0
-    && $userField->getValue('cat_org_id') != $gCurrentOrganization->getValue('org_id'))
+    && (int) $userField->getValue('cat_org_id') !== (int) $gCurrentOrganization->getValue('org_id'))
     {
         $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
         // => EXIT
@@ -177,20 +177,20 @@ $form->addInput('usf_url', $gL10n->get('ORG_URL'), $userField->getValue('usf_url
                 array('maxLength' => 2000, 'helpTextIdLabel' => 'ORG_FIELD_URL_DESC'));
 $form->closeGroupBox();
 $form->openGroupBox('gb_authorization', $gL10n->get('SYS_AUTHORIZATION'));
-$form->addCheckbox('usf_hidden', $gL10n->get('ORG_FIELD_NOT_HIDDEN'), $userField->getValue('usf_hidden'),
+$form->addCheckbox('usf_hidden', $gL10n->get('ORG_FIELD_NOT_HIDDEN'), (bool) $userField->getValue('usf_hidden'),
                    array('helpTextIdLabel' => 'ORG_FIELD_HIDDEN_DESC', 'icon' => 'eye.png'));
 $form->addCheckbox('usf_disabled', $gL10n->get('ORG_FIELD_DISABLED',
-                   $gL10n->get('ROL_RIGHT_EDIT_USER')), $userField->getValue('usf_disabled'),
+                   $gL10n->get('ROL_RIGHT_EDIT_USER')), (bool) $userField->getValue('usf_disabled'),
                    array('helpTextIdLabel' => 'ORG_FIELD_DISABLED_DESC', 'icon' => 'textfield_key.png'));
 
 if($userField->getValue('usf_name_intern') === 'LAST_NAME' || $userField->getValue('usf_name_intern') === 'FIRST_NAME')
 {
-    $form->addCheckbox('usf_mandatory', $gL10n->get('ORG_FIELD_REQUIRED'), $userField->getValue('usf_mandatory'),
+    $form->addCheckbox('usf_mandatory', $gL10n->get('ORG_FIELD_REQUIRED'), (bool) $userField->getValue('usf_mandatory'),
                        array('property' => FIELD_DISABLED, 'helpTextIdLabel' => 'ORG_FIELD_REQUIRED_DESC', 'icon' => 'asterisk_yellow.png'));
 }
 else
 {
-    $form->addCheckbox('usf_mandatory', $gL10n->get('ORG_FIELD_REQUIRED'), $userField->getValue('usf_mandatory'),
+    $form->addCheckbox('usf_mandatory', $gL10n->get('ORG_FIELD_REQUIRED'), (bool) $userField->getValue('usf_mandatory'),
                        array('helpTextIdLabel' => 'ORG_FIELD_REQUIRED_DESC', 'icon' => 'asterisk_yellow.png'));
 }
 $form->closeGroupBox();
@@ -199,9 +199,10 @@ $form->addEditor('usf_description', null, $userField->getValue('usf_description'
 $form->closeGroupBox();
 
 $form->addSubmitButton('btn_save', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png'));
-$form->addHtml(admFuncShowCreateChangeInfoById($userField->getValue('usf_usr_id_create'),
-               $userField->getValue('usf_timestamp_create'), $userField->getValue('usf_usr_id_change'),
-               $userField->getValue('usf_timestamp_change')));
+$form->addHtml(admFuncShowCreateChangeInfoById(
+    (int) $userField->getValue('usf_usr_id_create'), $userField->getValue('usf_timestamp_create'),
+    (int) $userField->getValue('usf_usr_id_change'), $userField->getValue('usf_timestamp_change')
+));
 
 // add form to html page and show page
 $page->addHtml($form->show(false));

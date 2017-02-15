@@ -39,6 +39,7 @@
     <string name="DAT_ASSIGN_PARTICIPANTS">Teilnehmer zuordnen</string>
     <string name="DAT_ATTEND">Teilnehmen</string>
     <string name="DAT_ATTEND_DATE">Du hast deine Teilnahme für den Termin #VAR1_BOLD# am #VAR2# zugesagt.</string>
+    <string name="DAT_ATTEND_POSSIBLY">Du hast deine Teilnahme für den Termin #VAR1_BOLD# am #VAR2# unter Vorbehalt zugesagt.</string>
     <string name="DAT_CALENDAR">Kalender</string>
     <string name="DAT_CANCEL">Absagen</string>
     <string name="DAT_CANCEL_DATE">Du hast deine Teilnahme für den Termin #VAR1_BOLD# am #VAR2# wieder abgesagt.</string>
@@ -46,6 +47,8 @@
     <string name="DAT_DATE">Termin</string>
     <string name="DAT_DATES">Termine</string>
     <string name="DAT_DATES_DESC">Termine können hier angelegt und angeschaut werden. Benutzer können sich auf Wunsch zu diesen Terminen anmelden.</string>
+    <string name="DAT_DEFAULT_LIST_CONFIGURATION">Standardkonfiguration  der Teilnehmerliste</string>
+    <string name="DAT_DEFAULT_LIST_CONFIGURATION_DESC">Eine der hier vorgegebenen Konfigurationen kann zur Standardkonfiguration für die Teilnehmerliste an Terminen dieser Organisation gemacht werden. Teilnehmer von Terminen werden mit dieser Konfiguration angezeigt.</string>
     <string name="DAT_EDIT_CALENDAR_DESC">Hier können Kalender angelegt und bearbeitet werden.</string>
     <string name="DAT_EDIT_ROOMS">Räume bearbeiten</string>
     <string name="DAT_EDIT_ROOMS_DESC">Hier können Räume für Veranstaltungen angelegt und bearbeitet werden.</string>
@@ -59,6 +62,7 @@
     <string name="DAT_EMAIL_NOTIFICATION_MESSAGE_PART3">Angelegt am: #VAR1#</string>
     <string name="DAT_ENABLE_ICAL">iCal-Funktion aktivieren</string>
     <string name="DAT_ENABLE_ICAL_DESC">Ist diese Funktion aktiviert, lassen sich einzelne Termine oder alle Termine in einem festgelegten Zeitraum herunterladen. Auch das Abonnieren der Termine mit einer Kalendersoftware wird möglich. (Standard: ja)</string>
+    <string name="DAT_ERROR_DELETE_DEFAULT_LIST">Die Liste #VAR1_BOLD# ist die Standardkonfiguration für Teilnehmerlisten in dieser Organisation und kann nicht gelöscht werden. Wähle in den Moduleinstellungen eine andere Konfiguration zur Standardkonfiguration und versuche danach diese Konfiguration zu löschen.</string>
     <string name="DAT_EXPORT_ICAL">Exportieren (iCal)</string>
     <string name="DAT_HIGHLIGHT_DATE">Termin optisch hervorheben</string>
     <string name="DAT_ICAL_DAYS_FUTURE">Anzahl iCal Tage Zukunft</string>
@@ -86,6 +90,8 @@
     <string name="DAT_ROOM_RESERVED">Der gewählte Raum ist zu dieser Zeit bereits reserviert.</string>
     <string name="DAT_ROOM_SELECTABLE">Raum auswählbar</string>
     <string name="DAT_ROOM_SELECTABLE_DESC">Eine Auswahlbox für die verfügbaren Räume wird angezeigt, um dem Ersteller eines Termins die Auswahl eines Raums zu ermöglichen. (Standard: nein)</string>
+    <string name="DAT_SAVE_ALL_CONFIRMATIONS">Absagen zu Terminen speichern</string>
+    <string name="DAT_SAVE_ALL_CONFIRMATIONS_DESC">Absagen von Teilnehmern zu Terminen können gespeichert werden. Die Absagen werden dann in der Teilnehmerliste ebenfalls angezeigt. Wird diese Option deaktiviert, dann werden Absagen nicht gespeichert und können in der Teilnehmerliste auch nicht eingesehen werden. Diese Option gilt ab dem Zeitpunkt der Einstellung und kann rückwirkend nicht mehr angewendet werden! (Standard : Ja)</string>
     <string name="DAT_SHOW_MAP_LINK">Kartenlink anzeigen</string>
     <string name="DAT_SHOW_MAP_LINK_DESC">Wird ein Ort angegeben, so wird versucht ein Link zu Google-Maps zu erstellen, welcher den Ort anzeigt, sowie eine Routenlink ausgehend vom eigenen Wohnort. (Standard: ja)</string>
     <string name="DAT_SHOW_ON_MAP">Auf Karte zeigen</string>
@@ -93,6 +99,11 @@
     <string name="DAT_SWITCH_TO_CALENDAR_ADMINISTRATION">Wechsel zur Kalenderverwaltung</string>
     <string name="DAT_SWITCH_TO_ROOM_ADMINISTRATION">Wechsel zur Raumverwaltung</string>
     <string name="DAT_VIEW_MODE">Standard-Darstellung</string>
+    <string name="DAT_USER_WILL_ATTEND">Nimmt teil</string>
+    <string name="DAT_USER_ATTEND">Ich nehme teil</string>
+    <string name="DAT_USER_TENTATIVE">Unter Vorbehalt</string>
+    <string name="DAT_USER_INVITED">Eingeladen</string>
+    <string name="DAT_USER_REFUSED">Abgesagt</string>
     <string name="DAT_VIEW_MODE_DESC">Anzeigeart der Termine. Im Modus #VAR1_BOLD# werden sämtliche Informationen eines Termins in einer Box angezeigt. Im Modus #VAR2_BOLD# werden die wichtigsten Termininformationen in einer kompakten Liste dargestellt. (Standard: Detailiert)</string>
     <string name="DAT_VIEW_MODE_DETAIL">Detailiert</string>
     <string name="DAT_VIEW_MODE_COMPACT">Kompakt</string>
@@ -101,6 +112,7 @@
     <!-- Phrases only in Downloadsmodule -->
     <string name="DOW_ADD_TO_DATABASE">Zur Datenbank hinzufügen</string>
     <string name="DOW_ADDITIONAL_FILES">In dieser Übersicht sind Dateien und Ordner aufgelistet, die noch nicht in der Datenbank verwaltet werden. Diese können nun der Datenbank hinzugefügt werden. Es werden automatisch die Berechtigungen des aktuellen Ordners übernommen.</string>
+    <string name="DOW_ADMINISTRATORS_DESC">Diese Rollen sind Administratoren des Downloadmoduls und haben somit auf alle Ordner und Dateien Zugriff. Sie können Dateien hochladen, herunterladen und die Zugriffsrechte vergeben. Eine Rolle kann zum Administrator gemacht werden, in dem ihr das Recht #VAR1_BOLD# zugeordnet wird.</string>
     <string name="DOW_COUNTER">Zähler</string>
     <string name="DOW_CREATE_FOLDER">Ordner anlegen</string>
     <string name="DOW_CREATE_FOLDER_DESC">Der neue Ordner wird im bestehenden Ordner #VAR1_BOLD# angelegt.</string>
@@ -138,8 +150,9 @@
     <string name="DOW_MAXIMUM_FILE_SIZE_DESC">Benutzer können nur Dateien hochladen, bei denen die Dateigröße kleiner als der hier angegebene Wert ist. Steht hier 0, so ist der Upload deaktiviert. (Standard: 3MB)</string>
     <string name="DOW_NEW_FILE_NAME">Neuer Dateiname</string>
     <string name="DOW_NEW_NAME">Neuer Name</string>
+    <string name="DOW_NO_ADDITIONAL_PERMISSIONS_SET">Keine zusätzlichen Berechtigungen gesetzt</string>
     <string name="DOW_PREVIOUS_NAME">Bisheriger Name</string>
-    <string name="DOW_ROLE_ACCESS_PERMISSIONS_DESC">Auf dieser Seite kannst du einstellen, wer den Ordner #VAR1_BOLD# sehen, Dateien herunterladen oder Dateien hochladen darf. Die gesetzten Berechtigungen werden an alle Unterordner vererbt und bereits vorhandene Berechtigungen in Unterordnern werden überschrieben. Es stehen dir nur Rollen zur Verfügung, die auf den übergeordneten Ordner Zugriff haben. Benutzer von Rollen mit der Berechtigung #VAR2_BOLD# haben immer alle Rechte für den Ordner.</string>
+    <string name="DOW_ROLE_ACCESS_PERMISSIONS_DESC">Auf dieser Seite kannst du einstellen, wer den Ordner #VAR1_BOLD# sehen, Dateien herunterladen oder Dateien hochladen darf. Die gesetzten Berechtigungen werden an alle Unterordner vererbt und bereits vorhandene Berechtigungen in Unterordnern werden überschrieben. Es stehen dir nur Rollen zur Verfügung, die auf den übergeordneten Ordner Zugriff haben. Administratoren besitzen alle Berechtigungen für den Ordner.</string>
     <string name="DOW_SELECT_FILES">Dateien auswählen</string>
     <string name="DOW_SET_FOLDER_PERMISSIONS">Ordnerberechtigungen setzen</string>
     <string name="DOW_UNMANAGED_FILES">Nicht verwaltete Dateien</string>
@@ -214,10 +227,21 @@
     <string name="INS_CREATE_ADMINISTRATOR">Administrator anlegen</string>
     <string name="INS_CREATE_CONFIGURATION_FILE">Konfigurationsdatei erzeugen</string>
     <string name="INS_DATA_FULLY_ENTERED">Du hast alle notwendigen Daten für die Installation von Admidio eingegeben.\n\nJetzt muss die Datenbank erstellt und mit deinen Daten befüllt werden.</string>
+    <string name="INS_DATABASE_CONNECTION_NOT_COMPLETELY">Die Datenbank Parameter wurden nicht vollständig eingegeben!</string>
+    <string name="INS_DATABASE_DOESNOT_NEED_UPDATED">Eine Aktualisierung der Datenbank ist nicht erforderlich</string>
+    <string name="INS_DATABASE_FILE_NOT_FOUND">Die Datei #VAR1_BOLD# konnte nicht im Verzeichnis #VAR2_BOLD# gefunden werden.</string>
+    <string name="INS_DATABASE_IS_UP_TO_DATE">Die Admidio-Datenbank ist aktuell</string>
+    <string name="INS_DATABASE_IS_UPDATED">Datenbank wird aktualisiert</string>
+    <string name="INS_DATABASE_LOGIN">Datenbank Zugangsdaten</string>
     <string name="INS_DATABASE_LOGIN_DESC">Gib in diesem Formular deine Zugangsdaten zur Datenbank an. Du kannst das Tabellenpräfix auf Wunsch verändern. Dies ist notwendig, falls du mehrere Admidio-Installationen auf derselben Datenbank einrichten möchtest.</string>
     <string name="INS_DATABASE_NEEDS_UPDATED_VERSION">Deine Datenbank liegt in Version #VAR1# vor.\n\nEine Aktualisierung der Datenbank auf Version #VAR2# ist erforderlich.</string>
-    <string name="INS_DATABASE_SYSTEM">Datenbanksystem</string>
+    <string name="INS_DATABASE_NAME_INVALID">Der Datenbank-Name enthält ungültige Zeichen!</string>
     <string name="INS_DATABASE_PORT_INFO">Wird dieses Feld nicht ausgefüllt, so wird der Standardport der Datenbank (MySQL: 3306, PostgreSQL: 5432) verwendet. Nutzt du oder dein Webhoster einen speziellen Port, so kann dieser hier eingetragen werden.</string>
+    <string name="INS_DATABASE_PORT_INVALID">Der angegebene Port ist nicht gültig. Für einen gültigen Port wähle zwischen 1 und 65535 oder lass den Port für den Standardport leer.</string>
+    <string name="INS_DATABASE_SYSTEM">Datenbanksystem</string>
+    <string name="INS_DATABASE_TYPE_INVALID">Admidio unterstützt nur MySQL und PostgreSQL.</string>
+    <string name="INS_DATABASE_USER_INVALID">Der Datenbank-User enthält ungültige Zeichen!</string>
+    <string name="INS_DATABASE_WILL_BE_ESTABLISHED">Datenbank wird eingerichtet</string>
     <string name="INS_DELETE_CONFIG_FILE">Im Hauptverzeichnis von Admidio #VAR1_BOLD# existiert noch eine Datei config.php. Diese wurde bereits in den Ordner adm_my_files verschoben. Lösche bitte diese Datei im Hauptverzeichnis.</string>
     <string name="INS_DOWNLOAD_CONFIGURATION_FILE">Konfigurationsdatei herunterladen</string>
     <string name="INS_DOWNLOAD_CONFIGURATION_FILE_DESC">Die Konfigurationsdatei #VAR1_BOLD# konnte nicht im Ordner #VAR2_BOLD# abgelegt werden. Bitte gib dem Ordner Schreibrechte (über FTP die Dateiattribute auf 0777 bzw. drwxrwxrwx setzen) oder lade die Konfigurationsdatei herunter und kopiere diese mit einem FTP-Programm in das Admidio Verzeichnis #VAR3_BOLD#.\n\nNachdem du die Datei dort abgelegt hast, kannst du die Installation fortsetzen.</string>
@@ -225,12 +249,6 @@
     <string name="INS_DATA_OF_ADMINISTRATOR">Daten des Administrators</string>
     <string name="INS_DATA_OF_ADMINISTRATOR_DESC">Gib in diesem Formular Name, E-Mail und die Zugangsdaten des Administrators an. Mit diesem Benutzer kannst du dich nach der Installation bei Admidio anmelden.</string>
     <string name="INS_DATA_OF_ORGANIZATION">Daten der Organisation</string>
-    <string name="INS_DATABASE_DOESNOT_NEED_UPDATED">Eine Aktualisierung der Datenbank ist nicht erforderlich</string>
-    <string name="INS_DATABASE_FILE_NOT_FOUND">Die Datei #VAR1_BOLD# konnte nicht im Verzeichnis #VAR2_BOLD# gefunden werden.</string>
-    <string name="INS_DATABASE_IS_UPDATED">Datenbank wird aktualisiert</string>
-    <string name="INS_DATABASE_IS_UP_TO_DATE">Die Admidio-Datenbank ist aktuell</string>
-    <string name="INS_DATABASE_LOGIN">Datenbank Zugangsdaten</string>
-    <string name="INS_DATABASE_WILL_BE_ESTABLISHED">Datenbank wird eingerichtet</string>
     <string name="INS_DESCRIPTION_BOARD">Vorstand des Vereins</string>
     <string name="INS_DESCRIPTION_CONFERENCE_ROOM">Hier können Besprechungen stattfinden. Der Raum muss vorher reserviert werden. Beamer steht zur Verfügung.</string>
     <string name="INS_DESCRIPTION_MEMBER">Alle Mitglieder der Organisation</string>
@@ -243,6 +261,7 @@
     <string name="INS_GOOGLE_PLUS">Google+</string>
     <string name="INS_GOOGLE_PLUS_DESC">Willst du dein Google+ Profil hier verlinken? Dazu benötigst du momentan noch die etwas kryptische Profilnummer von Google+. Melde dich bei Google+ an und lass dir dein Profil anzeigen. Kopiere nun die Adresszeile deines Browsers in dieses Feld und speichere dein Profil hier ab. Jetzt können andere Besucher aus deinem Profil direkt dein Google+ Profil aufrufen.</string>
     <string name="INS_GROUPS">Gruppen</string>
+    <string name="INS_HOST_INVALID">Hostname ist nicht gültig. Gib einen gültigen Hostenamen oder IP-Adresse ein.</string>
     <string name="INS_ICQ">ICQ</string>
     <string name="INS_ICQ_DESC">Gib hier deine ICQ-Nummer ein. Hast du in ICQ deinen Online-Status freigegeben, so wird dieser später in deinem Profil angezeigt.</string>
     <string name="INS_INSTALL_ADMIDIO">Admidio installieren</string>
@@ -255,7 +274,6 @@
     <string name="INS_LANGUAGE_NOT_CHOOSEN">Es wurde keine Sprache ausgewählt.</string>
     <string name="INS_MEMBERSHIP">Mitgliedschaft</string>
     <string name="INS_MESSENGER">Messenger</string>
-    <string name="INS_MYSQL_LOGIN_NOT_COMPLETELY">Es sind nicht alle Zugangsdaten zur MySql-Datenbank eingegeben worden!</string>
     <string name="INS_NO_INSTALLED_VERSION_FOUND">Die bereits installierte Version konnte nicht ermittelt werden. Falls du bisher noch Version 1.x von Admidio genutzt hast, aktualisiere zuerst auf Version 2.x und starte danach das Update auf Version #VAR1#. Falls du bereits Version 2.x oder neuer installiert hast, prüfe bitte die Konsistenz deiner Datenbank.</string>
     <string name="INS_ORGA_SHORTNAME_EXISTS">Eine Organisation mit dem Namen #VAR1_BOLD# existiert bereits. Wähle bitte einen anderen Namen aus.</string>
     <string name="INS_ORGANIZATION_NAME_NOT_COMPLETELY">Die Bezeichnung der Organisation wurde nicht vollständig eingegeben!</string>
@@ -356,12 +374,14 @@
     <string name="LST_CREATE_NEW_CONFIGURATION">Neue Konfiguration erstellen</string>
     <string name="LST_CREATE_OWN_LIST">Eigene Liste erstellen</string>
     <string name="LST_DEFAULT_CONFIGURATION">Standardkonfiguration</string>
-    <string name="LST_DEFAULT_CONFIGURATION_DESC">Eine der hier vorgegebenen Konfigurationen kann zur Standardkonfiguration für Listen dieser Organisation gemacht werden. Mitgliederlisten von Rollen, die keine Listenkonfiguration hinterlegt haben, werden in mit dieser Konfiguration angezeigt.</string>
+    <string name="LST_DEFAULT_CONFIGURATION_DESC">Eine der hier vorgegebenen Konfigurationen kann zur Standardkonfiguration für Listen dieser Organisation gemacht werden. Mitgliederlisten von Rollen, die keine Listenkonfiguration hinterlegt haben, werden mit dieser Konfiguration angezeigt.</string>
     <string name="LST_DEFAULT_LIST_NOT_SET_UP">Es wurde keine Standardliste eingerichtet!\n\nWende dich bitte an einen Administrator, damit dieser in den eigenen Listen eine beliebige Liste als Standardliste deklariert.</string>
     <string name="LST_DELETE_CONFIGURATION">Konfiguration löschen</string>
     <string name="LST_EMAIL_TO_MEMBERS">E-Mail an Mitglieder</string>
     <string name="LST_EMAIL_TO_LIST">E-Mail an Liste</string>
-    <string name="LST_EMPTY_EXAMPLE_DESC">Sucht alle Benutzer, die das Feld Adresse nicht gefüllt haben</string>
+    <string name="LST_EMPTY_EXAMPLE_DESC">Sucht alle Benutzer, die das Feld Straße nicht gefüllt haben</string>
+    <string name="LST_ENABLE_LISTS_MODULE">Listenmodul aktivieren</string>
+    <string name="LST_ENABLE_LISTS_MODULE_DESC">Das Grußkartenmodul kann über diese Einstellung komplett deaktiviert oder aktiviert werden.Falls der Server keinen Mailversand unterstützt, sollte das Modul deaktiviert werden.Dieses Modul steht generell nur eingeloggten Benutzern zur Verfügung. (Standard: ja)</string>
     <string name="LST_ERROR_DELETE_DEFAULT_LIST">Die Liste #VAR1_BOLD# ist die Standardkonfiguration für Listen in dieser Organisation und kann nicht gelöscht werden. Wähle in den Moduleinstellungen eine andere Konfiguration zur Standardkonfiguration und versuche danach diese Konfiguration zu löschen.</string>
     <string name="LST_EXCLUDE_EXAMPLE">Stefan</string>
     <string name="LST_EXCLUDE_EXAMPLE_DESC">Sucht alle Benutzer, die nicht Stefan heißen</string>
@@ -397,8 +417,10 @@
     <string name="LST_NO_RIGHTS_VIEW_LIST">Du besitzt keine Rechte Listen der hinterlegten Rollen anzuschauen.</string>
     <string name="LST_NOT_VALID_DATE_FORMAT">Bitte in der Bedingung des Feldes #VAR1_BOLD# ein gültiges Datum verwenden.</string>
     <string name="LST_NOT_NUMERIC">Bitte in der Bedingung des Feldes #VAR1_BOLD# nur gültige Zahlen verwenden.</string>
-    <string name="LST_NOT_EMPTY_EXAMPLE_DESC">Sucht alle Benutzer, die das Feld Adresse gefüllt haben</string>
+    <string name="LST_NOT_EMPTY_EXAMPLE_DESC">Sucht alle Benutzer, die das Feld Straße gefüllt haben</string>
     <string name="LST_NUMBER_OF_ROLES_PER_PAGE">Anzahl Rollen pro Seite</string>
+    <string name="LST_PARTICIPATION_INFORMATION">Teilnehmerinformationen</string>
+    <string name="LST_PARTICIPATION_STATUS">Teilnehmerstatus</string>
     <string name="LST_PRESET_CONFIGURATION">Vorgegebene Konfigurationen</string>
     <string name="LST_PRESET_CONFIGURATION_DESC">Als Administrator kannst du Konfigurationen erstellen, welche allen Benutzern des Systems zur Verfügung stehen. Konfiguriere die entsprechende Spalten und Bedingungen und speichere diese unter dem gewünschten Namen.</string>
     <string name="LST_PRINT_PREVIEW">Druckvorschau</string>
@@ -422,13 +444,18 @@
     <string name="LST_SEARCH_TELEFON_DESC">Sucht alle Benutzer, deren Telefonnummer 241 enthält und mit 54 endet</string>
     <string name="LST_SEARCH_YES_NO_FIELD">Ja/Nein Feld</string>
     <string name="LST_SEARCH_YES_NO_FIELD_DESC">Sucht alle Benutzer bei denen ein Häckchen gesetzt wurde</string>
+    <string name="LST_SEAT_AMOUNT">Zusätzliche Plätze</string>
     <string name="LST_SELECT_CONFIGURATION">Konfiguration auswählen</string>
     <string name="LST_SELECT_MEMBERS">Mitglieder auswählen</string>
+    <string name="LST_SHOW_FORMER_MEMBERS">Zeige ehemalige Mitglieder</string>
+    <string name="LST_SHOW_FORMER_MEMBERS_DESC">Mit dieser Einstellung kann festgelegt werden, wer ehemalige Rollenmitglieder sehen darf. Der Benutzer muss allerdings auch das Recht haben die Rolle selber zu sehen. (Standard: #VAR1#)</string>
+    <string name="LST_SHOW_FORMER_MEMBERS_RIGHT">Benutzer mit dem Recht #VAR1_BOLD#</string>
     <string name="LST_SHOW_LIST">Liste anzeigen</string>
     <string name="LST_SHOW_LISTS">Listen anzeigen</string>
     <string name="LST_YOUR_CONFIGURATION">Deine Konfigurationen</string>
     <string name="LST_YOUR_LAST_CONFIGURATION">Deine letzten Konfigurationen</string>
     <string name="LST_YOUR_LISTS">Deine Listen</string>
+    <string name="LST_USER_CHANGED">Geändert von</string>
     <string name="LST_USER_PHOTO">Benutzerfoto</string>
     <string name="LST_VARIOUS_ROLES">Verschiedene Rollen</string>
     <string name="LST_VARIOUS_USER_RELATION_TYPES">Verschiedene Beziehungen</string>
@@ -469,17 +496,17 @@
     <string name="MAI_MESSAGE_WENT_TO">Diese Nachricht ging an</string>
     <string name="MAI_PHP_MAIL">PHP mail()</string>
     <string name="MAI_RECIPIENTS_WITH_ROLES">Empfänger bei Rollen</string>
-    <string name="MAI_RECIPIENTS_WITH_ROLES_DESC">E-Mails an Rollen enthalten alle Empfänger im BCC-Feld. Das TO-Feld wird dann in der Regel mit "Undisclosed Recipients" gefüllt. Falls dies zu Problemen führt kann mit dieser Einstellung das Empfängerfeld (TO) mit der Absenderadresse bzw. der Administratoradresse aus den Systembenachrichtigungen gefüllt werden. Alle Emails an beliebige Rollen werden dann allerdings auch an diese Empfänger zusätzlich geschickt. Die Rollenmitglieder werden dabei weiterhin in das BCC-Feld geschrieben. (Standard: Deaktiviert)</string>
+    <string name="MAI_RECIPIENTS_WITH_ROLES_DESC">E-Mails an Rollen enthalten alle Empfänger im BCC-Feld. Das TO-Feld wird dann in der Regel mit "Undisclosed Recipients" gefüllt. Falls dies zu Problemen führt kann mit dieser Einstellung das Empfängerfeld (TO) mit der Absenderadresse bzw. der Administratoradresse aus den Systembenachrichtigungen gefüllt werden. Alle Emails an beliebige Rollen werden dann allerdings auch an diese Empfänger zusätzlich geschickt. Die Rollenmitglieder werden dabei weiterhin in das BCC-Feld geschrieben. (Standard: Versteckt)</string>
     <string name="MAI_SEND_COPY">Kopie der E-Mail an mich senden</string>
     <string name="MAI_SEND_EMAIL">E-Mail senden</string>
     <string name="MAI_SEND_MAIL_TO_ROLE">Deine E-Mail wird an alle Mitglieder der ausgewählten Rolle geschickt, sofern diese ihre E-Mail-Adresse im System hinterlegt haben oder an die ausgewählten Empfänger.\n\nWenn du eingeloggt bist stehen dir weitere Rollen und Empfänger zur Verfügung, an die du E-Mails schreiben kannst.</string>
     <string name="MAI_SEND_METHOD">Versenden über</string>
     <string name="MAI_SEND_METHOD_DESC">Die mail()-Funktion von PHP wird von einigen Hostern eingeschränkt und führt gelegentlich zu Spamverdacht. Daher wird in der Regel der Versand von einer existierenden Mailadresse über einen SMTP-Server empfohlen. Die SMTP-Einstellungen können weiter unten konfiguriert werden. (Standard: PHP mail())</string>
     <string name="MAI_SENDER">Absender</string>
-    <string name="MAI_SENDER_EMAIL">Absender Mailadresse</string>
-    <string name="MAI_SENDER_EMAIL_ADDRESS_DESC">Manche Provider erlauben die Nutzung unbekannter Mailadressen als Absender nicht. In diesem Fall kann hier eine Adresse eingetragen werden, von der aus dann alle Mails aus dem Mailmodul verschickt werden, (z.B. mailversand@#VAR1#).\nBleibt das Feld leer wird die Adresse des Absenders genutzt. (Standard: leer)</string>
+    <string name="MAI_SENDER_EMAIL">Absender E-Mailadresse</string>
+    <string name="MAI_SENDER_EMAIL_ADDRESS_DESC">Manche Provider erlauben die Nutzung unbekannter E-Mailadressen als Absender nicht. In diesem Fall kann hier eine Adresse eingetragen werden, von der aus dann alle E-Mails aus dem Mailmodul verschickt werden, (z.B. mailversand@#VAR1#).\nBleibt das Feld leer wird die Adresse des Absenders genutzt. (Standard: leer)</string>
     <string name="MAI_SENDER_NAME">Name des Absenders</string>
-    <string name="MAI_SENDER_NAME_DESC">Name des Absenders zur verwendeten Versandmailadresse.</string>
+    <string name="MAI_SENDER_NAME_DESC">Name des Absenders zur verwendeten E-Mailadresse. Dieses Feld muss nur gefüllt werden, wenn auch eine Absender E-Mailadresse gepflegt ist. (Standard: leer)</string>
     <string name="MAI_SENDER_NOT_LOGGED_IN">(Der Absender war nicht eingeloggt. Deshalb könnten die Absenderangaben fehlerhaft sein.)</string>
     <string name="MAI_SHOW_CAPTCHA_DESC">Für nicht eingeloggte Benutzer wird im Mailformular bei aktiviertem Captcha ein alphanumerischer Code eingeblendet. Diesen muss der Benutzer vor dem Mailversand korrekt eingeben. Dies soll sicherstellen, dass das Formular nicht von Spammern missbraucht werden kann. (Standard: ja)</string>
     <string name="MAI_SMTP">SMTP</string>
@@ -619,7 +646,7 @@
     <string name="ORG_CAPTCHA_COLOR_DESC">Die Hintergrundfarbe sollte sich von der Zeichenfarbe absetzen. Sind Linienfarbe und Zeichenfarbe identisch ist es für Skripte und Bots schwieriger das Captcha zu lösen. Die einzelnen Farben müssen als #VAR1#hexadezimaler Wert#VAR2# angegeben werden.</string>
     <string name="ORG_CAPTCHA_DISTORTION">Verzerrung</string>
     <string name="ORG_CAPTCHA_DISTORTION_DESC">Dieser Wert gibt an, wie stark die Zeichen verzerrt werden sollen. 0 bedeutet keine Verzerrung, 3 ist bereits eine so starke Verzerrung, dass einzelne Zeichen nicht mehr erkannt werden können. (Standard: 0.75)</string>
-    <string name="ORG_CAPTCHA_FONT">Hier kann die Schriftart für den Captcha-Code ausgewählt werden. (Standard: Theme-Schriftart)</string>
+    <string name="ORG_CAPTCHA_FONT">Hier kann die Schriftart für den Captcha-Code ausgewählt werden. (Standard: AHGBold.ttf)</string>
     <string name="ORG_CAPTCHA_LINE_COLOR">Linienfarbe</string>
     <string name="ORG_CAPTCHA_LINES_NUMBERS">Anzahl Linien</string>
     <string name="ORG_CAPTCHA_LINES_NUMBERS_DESC">Die Linien auf dem Captcha sollen es Skripten/Bots erschweren diese zu lösen. Je mehr Linien gezeichnet werden, desto schwieriger ist es dieses zu lösen. Leider gilt dies aber auch für Menschen. (Standard: 5)</string>
@@ -683,7 +710,7 @@
     <string name="ORG_NOT_SAVED_SETTINGS_LOST">Beim Wechsel in diese Ansicht gehen alle nicht gespeicherten Einstellungen verloren.</string>
     <string name="ORG_NOTIFY_ADMINISTRATOR">Benachrichtigung des Administrators nach einer Registrierung</string>
     <string name="ORG_NUMBER_OF_ENTRIES_PER_PAGE">Anzahl Einträge pro Seite</string>
-    <string name="ORG_NUMBER_OF_ENTRIES_PER_PAGE_DESC">Anzahl der Einträge die auf einer Seite dargestellt werden. Gibt es mehr Einträge so kann zwischen diesen geblättert werden. Bei dem Wert 0 werden alle Einträge auf einer Seite aufgelistet und die Blättern-Funktion deaktiviert. (Standard: 10)</string>
+    <string name="ORG_NUMBER_OF_ENTRIES_PER_PAGE_DESC">Anzahl der Einträge die auf einer Seite dargestellt werden. Gibt es mehr Einträge so kann zwischen diesen geblättert werden. Bei dem Wert 0 werden alle Einträge auf einer Seite aufgelistet und die Blättern-Funktion deaktiviert. (Standard: #VAR1#)</string>
     <string name="ORG_ONLY_FOR_REGISTERED_USER">Nur für angemeldete Benutzer</string>
     <string name="ORG_ORGANIZATION_PROPERTIES_DESC">Allgemeine Admidio-Einstellungen, sowie Einstellungen zu den einzelnen Modulen, können hier festgelegt werden.</string>
     <string name="ORG_ORGANIZATION_SUCCESSFULL_ADDED">Die Organisation #VAR1_BOLD# wurde hinzugefügt. Du kannst diese nun bei der Anmeldung auswählen.\n\nFalls du für diese Organisation eine separate Homepage erstellt hast, muss du auf der entsprechenden Seite noch die neue Organisation in die config.php eingetragen.</string>
@@ -748,7 +775,6 @@
     <string name="UPD_NEW_BOTH">Eine neue stabile Version und eine neue Beta Version ist verfügbar!</string>
     <string name="UPD_NO_NEW">Du benutzt eine aktuelle #VAR1#Version von Admidio!</string>
     <string name="UPD_STABLE_VERSION">Verfügbar</string>
-    <string name="UPD_TITLE">Update Prüfung</string>
     <!-- Phrases only in Photomodule -->
     <string name="PHO_ALBUM">Album</string>
     <string name="PHO_ALBUM_DELETE">Album Löschen</string>
@@ -767,6 +793,7 @@
     <string name="PHO_DOWNLOAD_SINGLE_PHOTO">Foto speichern</string>
     <string name="PHO_DOWNLOAD_ENABLED">Download aktivieren</string>
     <string name="PHO_DOWNLOAD_ENABLED_DESC">Erlaubt es einzelne Fotos sowie komplette Alben als Zip-datei herunterzuladen. Dabei wird bei jedem Album als auch bei jedem Foto ein entsprechender Link angezeigt. Ist die Option #VAR1_BOLD# aktiviert, dann werden nur die Originalfotos heruntergeladen.</string>
+    <string name="PHP_DOWNLOAD_ZIP_ERROR">Bei der Erstellung der Zip-Datei ist ein Fehler aufgetreten.</string>
     <string name="PHO_EDIT_ALBUM">Album Bearbeiten</string>
     <string name="PHO_EMAIL_NOTIFICATION_TITLE">Ein neues Fotoalbum wurde angelegt</string>
     <string name="PHO_EMAIL_NOTIFICATION_MESSAGE">Es wurde ein neues Fotoalbum bei #VAR1# angelegt.\n\nTitel: #VAR2#\nAngelegt von: #VAR3#\nAngelegt am: #VAR4#</string>
@@ -826,6 +853,7 @@
     <string name="PRO_ACCEPT_NEW_PICTURE">Neues Profilfoto übernehmen</string>
     <string name="PRO_ADD_USER">Benutzer anlegen</string>
     <string name="PRO_ADD_USER_RELATION">Beziehung erstellen</string>
+    <string name="PRO_ASSIGNED_BY_ROLES">Vergeben durch die Rollen</string>
     <string name="PRO_ASSIGN_REGISTRATION_SUCCESSFUL">Die Registrierung wurde erfolgreich bestätigt. Der Benutzer kann sich jetzt im System anmelden.</string>
     <string name="PRO_CANCEL_MEMBERSHIP">Mitgliedschaft beenden</string>
     <string name="PRO_CANCEL_USER_RELATION">Beziehung löschen</string>
@@ -860,6 +888,7 @@
     <string name="PRO_NEW_PASSWORD">Neues Passwort</string>
     <string name="PRO_NEW_PICTURE">Neues Profilfoto</string>
     <string name="PRO_NO_DEFAULT_ROLE">In der Rollenverwaltung wurde keine Standardrolle für neue Benutzer hinterlegt. Wende dich bitte an einen Administrator, der diese Einstellung vornehmen kann.</string>
+    <string name="PRO_NO_PERMISSIONS_ASSIGNED">Es wurden keine Berechtigungen vergeben.</string>
     <string name="PRO_NO_ROLES_VISIBLE">Es wurden keine Rollen gefunden. Ggf. fehlen dir die Rechte bestimmte Rollen zu sehen.</string>
     <string name="PRO_PASSWORD_CHANGED">Das Passwort wurde erfolgreich geändert.</string>
     <string name="PRO_PASSWORD_DESCRIPTION">Das Passwort muss aus mindestens 8 Zeichen bestehen. Es sollte sowohl Zahlen, Buchstaben als auch Sonderzeichen beinhalten.\n\nDie Stärke deines gewählten Passworts wird dir farblich über einen Balken dargestellt. Die mindestens notwendige Stärke zeigt dir der Pfeil im Balken an.</string>
@@ -921,13 +950,13 @@
     <string name="ROL_DEFAULT_REGISTRATION_DESC">Wird ein neuer Benutzer angelegt bzw. eine neue Registrierung akzeptiert, dann wird diese Rolle automatisch dem neuen Benutzer zugeordnet. Besitzt der Ersteller das Recht Rollen zu zuordnen, so werden ihm alle Rollenzuordnung angezeigt und er kann sie entsprechend anpassen.</string>
     <string name="ROL_DEPENDENCIES">Abhängigkeiten</string>
     <string name="ROL_DEPENDENT">Abhängig</string>
+    <string name="ROL_DISABLE_ROLE">Rolle deaktivieren</string>
+    <string name="ROL_DISABLE_ROLE_DESC">Wenn du #VAR1_BOLD# auswählst, wird die Rolle und alle Mitgliedszuordnungen endgültig aus der Datenbank entfernt und es ist später nicht mehr möglich Daten dieser Rolle einzusehen.</string>
     <string name="ROL_EDIT_ROLE">Rolle bearbeiten</string>
     <string name="ROL_ENABLE_ROLE">Rolle aktivieren</string>
-    <string name="ROL_HINT_DELETE_ROLE">Wenn du #VAR1_BOLD# auswählst, wird die Rolle und alle Mitgliedszuordnungen entgültig aus der Datenbank entfernt und es ist später nicht mehr möglich Daten dieser Rolle einzusehen.</string>
+    <string name="ROL_ENABLE_ROLE_DESC">Wenn du die Rolle #VAR1_BOLD# wieder aktivierst, bekommen die Rollenmitglieder wieder die Rechte zugeordnet und die Rolle erscheint in sämtlichen Listen.\n\nMöchtest du die Rollen wieder aktivieren?</string>
     <string name="ROL_INACTIV_ROLE">Inaktive Rolle</string>
-    <string name="ROL_INACTIV_ROLE_DESC">Du kannst die Rolle zu einer inaktiven Rolle machen. Dies hat den Vorteil, dass die Daten (Mitgliederzuordnung) erhalten bleiben und du später immer wieder sehen kannst, welche Personen dieser Rolle zugeordnet waren. Allerdings erscheint die Rolle nicht mehr in den üblichen Übersichten.</string>
     <string name="ROL_INACTIV_ROLES">Inaktive Rollen</string>
-    <string name="ROL_INVISIBLE_ROLES">Unsichtbare Rollen</string>
     <string name="ROL_LEADER_NO_ADDITIONAL_RIGHTS">Leiter dieser Rolle haben keine gesonderten Rechte. Sie werden in Listenansichten nur hervorgehoben dargestellt.</string>
     <string name="ROL_LEADER_EDIT_MEMBERS">Leiter dieser Rolle können Profildaten aller Rollenmitglieder bearbeiten.</string>
     <string name="ROL_LEADER_ASSIGN_MEMBERS">Leiter dieser Rolle können neue Rollenmitglieder hinzufügen oder vorhandene Mitglieder entfernen.</string>
@@ -965,12 +994,12 @@
     <string name="ROL_ROLE_ADMINISTRATION">Rollenverwaltung</string>
     <string name="ROL_ROLE_ADMINISTRATION_DESC">Rollen, dies können Gruppen, Kurse oder Abteilungen sein, können hier erstellt und bearbeitet werden. Auch die Rechte der einzelnen Rollen werden hier festgelegt.</string>
     <string name="ROL_ROLE_DELETE">Rolle löschen</string>
-    <string name="ROL_ROLE_DELETE_DESC">Willst du die Rolle #VAR1# wirklich löschen?\n\nEs werden damit auch alle Mitgliedschaften entgütig entfernt.</string>
+    <string name="ROL_ROLE_DELETE_DESC">Willst du die Rolle #VAR1_BOLD# wirklich löschen?\n\nEs werden damit auch alle Mitgliedschaften entgütig entfernt.</string>
     <string name="ROL_ROLE_DEPENDENCIES">Ein Mitglied der abhängigen Rollen soll auch automatisch Mitglied der #VAR1# sein!\n\nBeim Setzten dieser Abhängigkeit werden auch bereits existierende Mitglieder der abhängigen Rolle Mitglied der #VAR1#. Beim Entfernen einer Abhängigkeit werden Mitgliedschaften nicht aufgehoben!</string>
     <string name="ROL_ROLE_MEMBERSHIPS">Rollenmitgliedschaften</string>
     <string name="ROL_ROLE_MEMBERSHIPS_CHANGE">Rollenmitgliedschaften ändern</string>
     <string name="ROL_ROLE_NAME_EXISTS">Es existiert bereits eine Rolle in dieser Kategorie mit demselben Namen.</string>
-    <string name="ROL_ROLE_SET_MODE">Die Rolle #VAR1_BOLD# wurde auf #VAR2_BOLD# gesetzt.</string>
+    <string name="ROL_ROLES_CONFIRMATION_OF_PARTICIPATION">Rollen - Teilnahmebestätigung</string>
     <string name="ROL_SAVE_ROLES">Beim Speichern dieser Einstellungen gehen eventuell konfigurierte Rollenabhängigkeiten verloren.</string>
     <string name="ROL_SEE_ROLE_MEMBERSHIP">Rollenmitgliedschaft sehen</string>
     <string name="ROL_SEMIYEARLY">Halbjährlich</string>
@@ -978,8 +1007,6 @@
     <string name="ROL_SEND_MAIL_MEMBERS">Eingeloggte Benutzer dürfen E-Mails an diese Rolle schreiben.</string>
     <string name="ROL_SEND_MAIL_ROLE">Nur Mitglieder dieser Rolle dürfen E-Mails an sie schreiben.</string>
     <string name="ROL_SEND_MAILS">E-Mails zusenden</string>
-    <string name="ROL_SET_ROLE_INVISIBLE">Rolle unsichtbar machen</string>
-    <string name="ROL_SET_ROLE_VISIBLE">Rolle sichtbar machen</string>
     <string name="ROL_SHOW_MEMBERS">Mitglieder anzeigen</string>
     <string name="ROL_SYSTEM_DEFAULT_LIST">Systemweite Standardliste</string>
     <string name="ROL_UNIQUELY">Einmalig</string>
@@ -987,7 +1014,6 @@
     <string name="ROL_VALID_TO" description="Date valid to">Gültig bis</string>
     <string name="ROL_VIEW_LIST_MEMBERS">Angemeldete Benutzer können die Mitgliederliste der Rolle einsehen.</string>
     <string name="ROL_VIEW_LIST_ROLE">Nur Mitglieder dieser Rolle können die Mitgliederliste einsehen.</string>
-    <string name="ROL_VISIBLE_ROLES">Sichtbare Rollen</string>
     <string name="ROL_WEEKDAY">Wochentag</string>
     <string name="ROL_WITHOUT_LEADER">Ohne Leiter</string>
     <!-- Phrases only in Roommodule -->
@@ -999,7 +1025,6 @@
     <!-- System-Phrases for use in every module -->
     <string name="SYS_ABORT">Abbrechen</string>
     <string name="SYS_ABR_NO" description="Abbreviation for Number">Nr.</string>
-    <string name="SYS_ACTIVE">Aktiv</string>
     <string name="SYS_ACTIVATED">Aktiviert</string>
     <string name="SYS_ADD_RECIPIENTS">Empfänger hinzufügen</string>
     <string name="SYS_ADDRESS">Adresse</string>
@@ -1008,6 +1033,7 @@
     <string name="SYS_ADMIDIO_VERSION">Admidio-Version</string>
     <string name="SYS_ADMINISTRATION">Administration</string>
     <string name="SYS_ADMINISTRATOR">Administrator</string>
+    <string name="SYS_ADMINISTRATORS">Administratoren</string>
     <string name="SYS_AJAX_REQUEST_ERROR">Es ist ein Fehler bei der Ajax Anfrage aufgetreten.\nError Details: #VAR1#</string>
     <string name="SYS_ALL">Alle</string>
     <string name="SYS_ALSO_VISITORS">auch Besucher</string>
@@ -1044,7 +1070,6 @@
     <string name="SYS_CONDITION">Bedingung</string>
     <string name="SYS_CONFIRM_PASSWORD">Passwort bestätigen</string>
     <string name="SYS_CONFIRMATION_OF_INPUT">Bestätigung der Eingaben</string>
-    <string name="SYS_CONFIRMATION_OF_PARTICIPATION">Teilnahmebestätigung</string>
     <string name="SYS_CONTACT_DETAILS">Kontaktdaten</string>
     <string name="SYS_CONTENT">Inhalt</string>
     <string name="SYS_CONTRIBUTION">Beitrag</string>
@@ -1105,6 +1130,7 @@
     <string name="SYS_ERROR">Fehler</string>
     <string name="SYS_ERROR_DATABASE_ACCESS">Folgender Fehler trat beim Zugriff auf die Datenbank auf:\n\n#VAR1#</string>
     <string name="SYS_ERROR_PAGE_NOT_FOUND">ERROR 404 - Seite nicht gefunden!</string>
+    <string name="SYS_EVENTS_CONFIRMATION_OF_PARTICIPATION">Termine - Teilnahmebestätigung</string>
     <string name="SYS_EXAMPLE">Beispiel</string>
     <string name="SYS_EXAMPLES">Beispiele</string>
     <string name="SYS_FADE_IN">Einblenden</string>
@@ -1136,23 +1162,20 @@
     <string name="SYS_FRIDAY">Freitag</string>
     <string name="SYS_FULL_SCREEN">Vollbild</string>
     <string name="SYS_GENDER">Geschlecht</string>
-    <string name="SYS_GEN_RANDOM_ERROR">Es ist ein unerwarteter Fehler bei der Generierung einer zufälligen Zeichenkette aufgetreten.</string>
-    <string name="SYS_GEN_RANDOM_FAIL">Das Programm kann keine zufällige Zeichenkette erzeugen.</string>
     <string name="SYS_GEN_RANDOM_TWO_DISTINCT_CHARS">Das Programm erwartet eine Zeichenkette mit mindestens 2 unterschiedlichen Zeichen.</string>
     <string name="SYS_HEADER_ALREADY_SENT">HTTP-Header wurden bereits gesendet!</string>
     <string name="SYS_HEADLINE">Überschrift</string>
     <string name="SYS_HELP">Hilfe</string>
     <string name="SYS_HIDE">Ausblenden</string>
     <string name="SYS_HOMEPAGE">Startseite</string>
+    <string name="SYS_HOST">Host</string>
     <string name="SYS_ICAL_DISABLED">Die iCal-Funktion wurde vom Administrator deaktiviert.</string>
     <string name="SYS_ICON">Icon</string>
     <string name="SYS_IMPORTANT">Wichtig</string>
-    <string name="SYS_INACTIVE">Inaktiv</string>
     <string name="SYS_INFORMATIONS">Informationen</string>
     <string name="SYS_INTERNAL_NAME">Interner Name</string>
     <string name="SYS_INTERNAL_NAME_DESC">Der interne Name wird für den eindeutigen Zugriff auf ein Feld benutzt. Dieser ist für die Programmbenutzung nicht relevant. Bei der Entwicklung muss allerdings immer dieser Name benutzt werden, um das Feld z.B. mit getValue() anzusprechen. Der interne Name wird beim Anlegen eines Feldes automatisch gefüllt.</string>
     <string name="SYS_INVALID_PAGE_VIEW">Ungültiger Seitenaufruf</string>
-    <string name="SYS_INVISIBLE">Unsichtbar</string>
     <string name="SYS_IO_ERROR">E/A Fehler</string>
     <string name="SYS_ISO_8859_1">ISO-8859-1</string>
     <string name="SYS_ITEMNAME">Artikelname</string>
@@ -1300,7 +1323,6 @@
     <string name="SYS_SENDER">Absender</string>
     <string name="SYS_SERVER">Server</string>
     <string name="SYS_SERVER_NO_UPLOAD">Die Servereinstellungen lassen leider keine Dateiuploads zu.</string>
-    <string name="SYS_SET_BY">Gesetzt durch</string>
     <string name="SYS_SETTINGS">Einstellungen</string>
     <string name="SYS_SHOW_CALENDAR">Kalender anzeigen</string>
     <string name="SYS_SHOW_PROFILE">Profil anzeigen</string>
@@ -1314,6 +1336,7 @@
     <string name="SYS_STATUS_CODE_INVALID">Ungülter Status-Code!</string>
     <string name="SYS_STILL_X_CHARACTERS">noch #VAR1# Zeichen</string>
     <string name="SYS_STOP">Stop</string>
+    <string name="SYS_STREET">Straße</string>
     <string name="SYS_SUNDAY">Sonntag</string>
     <string name="SYS_SWITCH_TO_CATEGORIES_ADMINISTRATION">Wechsel zur Kategorienverwaltung</string>
     <string name="SYS_SYSMAIL_ACTIVATION_LINK">#subject# Dein angefordertes Passwort\n#content# Hallo #user_first_name#,\n\ndu hast ein neues Passwort angefordert!\n\nHier sind deine Daten:\nBenutzername: #user_login_name#\nPasswort: #variable1#\n\nDamit du dein neues Passwort benutzen kannst, musst du es über den folgenden Link freischalten:\n\n#variable2#\n\nDas Passwort wurde automatisch generiert.\nDu solltest es nach deiner Anmeldung auf #organization_homepage# in deinem Profil ändern.\n\nViele Grüße\nDie Administratoren</string>

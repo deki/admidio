@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Form for sending ecards
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,9 +14,9 @@
  * usr_id:      (optional) Id of the user who should receive the ecard
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('ecard_function.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require_once(__DIR__ . '/ecard_function.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getPhotoId = admFuncVariableIsValid($_GET, 'pho_id',    'int', array('requireValue' => true));
@@ -30,10 +30,9 @@ $templates = $funcClass->getFileNames(THEME_ADMIDIO_PATH. '/ecard_templates/');
 $template  = THEME_ADMIDIO_PATH. '/ecard_templates/';
 $headline  = $gL10n->get('ECA_GREETING_CARD_EDIT');
 
-// pruefen ob das Modul ueberhaupt aktiviert ist
+// check if the module is enabled and disallow access if it's disabled
 if ($gPreferences['enable_ecard_module'] != 1)
 {
-    // das Modul ist deaktiviert
     $gMessage->show($gL10n->get('SYS_MODULE_DISABLED'));
     // => EXIT
 }
@@ -66,7 +65,7 @@ if($getPhotoId > 0 && (int) $photoAlbum->getValue('pho_org_id') !== (int) $gCurr
     // => EXIT
 }
 
-if ($gValidLogin && strlen($gCurrentUser->getValue('EMAIL')) === 0)
+if ($gValidLogin && $gCurrentUser->getValue('EMAIL') === '')
 {
     // der eingeloggte Benutzer hat in seinem Profil keine gueltige Mailadresse hinterlegt,
     // die als Absender genutzt werden kann...
@@ -80,8 +79,7 @@ if ($getUserId > 0)
     $user = new User($gDb, $gProfileFields, $getUserId);
 
     // darf auf die User-Id zugegriffen werden
-    if((!$gCurrentUser->editUsers() && !isMember($user->getValue('usr_id')))
-    || strlen($user->getValue('usr_id')) === 0)
+    if((!$gCurrentUser->editUsers() && !isMember($user->getValue('usr_id'))) || strlen($user->getValue('usr_id')) === 0)
     {
         $gMessage->show($gL10n->get('SYS_USER_ID_NOT_FOUND'));
         // => EXIT
@@ -117,23 +115,19 @@ $page->enableModal();
 $page->addJavascriptFile('adm_program/libs/lightbox/ekko-lightbox.min.js');
 
 $page->addJavascript('
-    $(document).delegate(
-        "*[data-toggle=\"lightbox\"]",
-        "click",
-        function(event) {
-            event.preventDefault();
-            $(this).ekkoLightbox();
-        }
-    );
+    $(document).delegate("*[data-toggle=\"lightbox\"]", "click", function(event) {
+        event.preventDefault();
+        $(this).ekkoLightbox();
+    });
 
-    $("#admidio_modal").on("show.bs.modal", function () {
+    $("#admidio_modal").on("show.bs.modal", function() {
         $(this).find(".modal-dialog").css({width: "800px"});
     });
 
     $("#btn_ecard_preview").click(function(event) {
         event.preventDefault();
         $("#ecard_form input[id=\'submit_action\']").val("preview");
-        $("#ecard_form textarea[name=\'ecard_message\']").text( CKEDITOR.instances.ecard_message.getData() );
+        $("#ecard_form textarea[name=\'ecard_message\']").text(CKEDITOR.instances.ecard_message.getData());
 
         $.post({ // create an AJAX call...
             data: $("#ecard_form").serialize(), // get the form data
@@ -145,7 +139,9 @@ $page->addJavascript('
         });
 
         return false;
-    }); ', true);
+    });',
+    true
+);
 
 // add back link to module menu
 $ecardMenu = $page->getMenu();
@@ -202,10 +198,10 @@ $sql = 'SELECT rol_id, rol_name
           FROM '.TBL_ROLES.'
     INNER JOIN '.TBL_CATEGORIES.'
             ON cat_id = rol_cat_id
-         WHERE rol_id IN ('.implode(',', $arrayMailRoles).')
-           AND cat_name_intern <> \'CONFIRMATION_OF_PARTICIPATION\'
+         WHERE rol_id IN ('.replaceValuesArrWithQM($arrayMailRoles).')
+           AND cat_name_intern <> \'EVENTS\'
       ORDER BY rol_name';
-$statement = $gDb->query($sql);
+$statement = $gDb->queryPrepared($sql, $arrayMailRoles);
 
 while($row = $statement->fetch())
 {
@@ -216,8 +212,7 @@ while($row = $statement->fetch())
 $arrayRoles = array_merge($arrayMailRoles, $gCurrentUser->getAllVisibleRoles());
 $arrayUniqueRoles = array_unique($arrayRoles);
 
-$sql = 'SELECT usr_id, first_name.usd_value AS first_name, last_name.usd_value AS last_name,
-               email.usd_value AS email
+$sql = 'SELECT usr_id, first_name.usd_value AS first_name, last_name.usd_value AS last_name, email.usd_value AS email
           FROM '.TBL_MEMBERS.'
     INNER JOIN '.TBL_USERS.'
             ON usr_id = mem_usr_id
@@ -229,17 +224,23 @@ $sql = 'SELECT usr_id, first_name.usd_value AS first_name, last_name.usd_value A
            AND field.usf_type = \'EMAIL\'
      LEFT JOIN '.TBL_USER_DATA.' AS last_name
             ON last_name.usd_usr_id = usr_id
-           AND last_name.usd_usf_id = '. $gProfileFields->getProperty('LAST_NAME', 'usf_id'). '
+           AND last_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'LAST_NAME\', \'usf_id\')
      LEFT JOIN '.TBL_USER_DATA.' AS first_name
             ON first_name.usd_usr_id = usr_id
-           AND first_name.usd_usf_id = '. $gProfileFields->getProperty('FIRST_NAME', 'usf_id'). '
+           AND first_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'FIRST_NAME\', \'usf_id\')
          WHERE usr_valid  = 1
-           AND mem_begin <= \''.DATE_NOW.'\'
-           AND mem_end    > \''.DATE_NOW.'\'
+           AND mem_begin <= ? -- DATE_NOW
+           AND mem_end    > ? -- DATE_NOW
            AND mem_rol_id IN ('.implode(',', $arrayUniqueRoles).')
       GROUP BY usr_id, first_name.usd_value, last_name.usd_value, email.usd_value
       ORDER BY last_name, first_name';
-$statement = $gDb->query($sql);
+$queryParams = array(
+    $gProfileFields->getProperty('LAST_NAME', 'usf_id'),
+    $gProfileFields->getProperty('FIRST_NAME', 'usf_id'),
+    DATE_NOW,
+    DATE_NOW
+);
+$statement = $gDb->queryPrepared($sql, $queryParams);
 
 while ($row = $statement->fetch())
 {
@@ -250,7 +251,7 @@ $form->addSelectBox(
     'ecard_recipients',
     $gL10n->get('SYS_TO'),
     $list,
-    array('property' => FIELD_REQUIRED, 'defaultValue' => $recipients, 'multiselect'  => true)
+    array('property' => FIELD_REQUIRED, 'defaultValue' => $recipients, 'multiselect' => true)
 );
 $form->addLine();
 $form->addInput('name_from', $gL10n->get('MAI_YOUR_NAME'), $gCurrentUser->getValue('FIRST_NAME'). ' '. $gCurrentUser->getValue('LAST_NAME'), array('maxLength' => 50, 'property' => FIELD_DISABLED));

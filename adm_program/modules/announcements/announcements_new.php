@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Create and edit announcements
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -15,13 +15,12 @@
  * copy : true - The announcement of the ann_id will be copied and the base for this new announcement
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
-// pruefen ob das Modul ueberhaupt aktiviert ist
+// check if the module is enabled and disallow access if it's disabled
 if ($gPreferences['enable_announcements_module'] == 0)
 {
-    // das Modul ist deaktiviert
     $gMessage->show($gL10n->get('SYS_MODULE_DISABLED'));
     // => EXIT
 }
@@ -91,9 +90,9 @@ $announcementsMenu->addItem('menu_item_back', $gNavigation->getPreviousUrl(), $g
 
 // show form
 $form = new HtmlForm('announcements_edit_form', ADMIDIO_URL.FOLDER_MODULES.'/announcements/announcements_function.php?ann_id='.$getAnnId.'&amp;headline='. $getHeadline. '&amp;mode=1', $page);
-$form->addInput('ann_headline', $gL10n->get('SYS_TITLE'), $announcement->getValue('ann_headline'), array('maxLength' => 100, 'property' => FIELD_REQUIRED));
+$form->addInput('ann_headline', $gL10n->get('SYS_TITLE'), noHTML($announcement->getValue('ann_headline')), array('maxLength' => 100, 'property' => FIELD_REQUIRED));
 $form->addSelectBoxForCategories('ann_cat_id', $gL10n->get('SYS_CATEGORY'), $gDb, 'ANN', 'EDIT_CATEGORIES',
-                                 array('property' => FIELD_REQUIRED, 'defaultValue' => $announcement->getValue('ann_cat_id')));
+                                 array('property' => FIELD_REQUIRED, 'defaultValue' => (int) $announcement->getValue('ann_cat_id')));
 
 // if current organization has a parent organization or is child organizations then show option to set this announcement to global
 if($gCurrentOrganization->getValue('org_org_id_parent') > 0 || $gCurrentOrganization->hasChildOrganizations())
@@ -102,13 +101,13 @@ if($gCurrentOrganization->getValue('org_org_id_parent') > 0 || $gCurrentOrganiza
     $organizations = '- '.$gCurrentOrganization->getValue('org_longname').',<br />- ';
     $organizations .= implode(',<br />- ', $gCurrentOrganization->getOrganizationsInRelationship(true, true, true));
 
-    $form->addCheckbox('ann_global', $gL10n->get('SYS_ENTRY_MULTI_ORGA'), $announcement->getValue('ann_global'), array('helpTextIdLabel' => array('SYS_DATA_GLOBAL', $organizations)));
+    $form->addCheckbox('ann_global', $gL10n->get('SYS_ENTRY_MULTI_ORGA'), (bool) $announcement->getValue('ann_global'), array('helpTextIdLabel' => array('SYS_DATA_GLOBAL', $organizations)));
 }
 $form->addEditor('ann_description', $gL10n->get('SYS_TEXT'), $announcement->getValue('ann_description'), array('property' => FIELD_REQUIRED, 'height' => '400'));
 $form->addSubmitButton('btn_save', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png'));
 $form->addHtml(admFuncShowCreateChangeInfoById(
-    $announcement->getValue('ann_usr_id_create'), $announcement->getValue('ann_timestamp_create'),
-    $announcement->getValue('ann_usr_id_change'), $announcement->getValue('ann_timestamp_change')
+    (int) $announcement->getValue('ann_usr_id_create'), $announcement->getValue('ann_timestamp_create'),
+    (int) $announcement->getValue('ann_usr_id_change'), $announcement->getValue('ann_timestamp_change')
 ));
 
 // add form to html page and show page

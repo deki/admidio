@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Constants that will be used within Admidio
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -21,7 +21,7 @@ if (basename($_SERVER['SCRIPT_FILENAME']) === 'constants.php')
 define('MIN_PHP_VERSION', '5.5.0');
 
 define('ADMIDIO_VERSION_MAIN', 3);
-define('ADMIDIO_VERSION_MINOR', 2);
+define('ADMIDIO_VERSION_MINOR', 3);
 define('ADMIDIO_VERSION_PATCH', 0);
 define('ADMIDIO_VERSION_BETA', 1);
 define('ADMIDIO_VERSION', ADMIDIO_VERSION_MAIN . '.' . ADMIDIO_VERSION_MINOR . '.' . ADMIDIO_VERSION_PATCH);
@@ -44,29 +44,33 @@ define('ADMIDIO_HOMEPAGE', 'https://www.admidio.org/');
 
 // BASIC STUFF
 // https://secure.php.net/manual/en/reserved.variables.server.php => $_SERVER['HTTPS']
-define('HTTPS', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'); // true
-define('PORT', (int) $_SERVER['SERVER_PORT']); // 443
+define('SECURE_PROXY', !empty($gSecureProxy)); // true | false
+define('HTTPS', SECURE_PROXY || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')); // true | false
+define('PORT', SECURE_PROXY ? 443 : (int) $_SERVER['SERVER_PORT']); // 443 | 80
 
-$port = ((!HTTPS && PORT === 80) || (HTTPS && PORT === 443)) ? '' : ':' . PORT;
-define('HOST', isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'] . $port); // www.example.org:1324
+$port = ((!HTTPS && PORT === 80) || (HTTPS && PORT === 443)) ? '' : ':' . PORT; // :1234
+$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'] . $port; // www.example.org:1234
 
-$hostParts = explode(':', HOST);
-define('DOMAIN', $hostParts[0]); // www.example.org
-
-$admParts = explode('/adm_', dirname($_SERVER['SCRIPT_NAME']));
-define('ADMIDIO_SUBFOLDER', $admParts[0] === DIRECTORY_SEPARATOR ? '' : $admParts[0]); // /subfolder
-
-// URLS
-define('SERVER_URL',  (HTTPS ? 'https://' : 'http://') . HOST); // https://www.example.org:1234
-define('ADMIDIO_URL', SERVER_URL . ADMIDIO_SUBFOLDER); // https://www.example.org:1234/subfolder
-define('FILE_URL',    SERVER_URL . $_SERVER['SCRIPT_NAME']); // https://www.example.org:1234/subfolder/adm_program/index.php
-define('CURRENT_URL', SERVER_URL . $_SERVER['REQUEST_URI']); // https://www.example.org:1234/subfolder/adm_program/index.php?param=value
+define('HOST', SECURE_PROXY ? $gSecureProxy : $host); // www.example.org:1234 | www.myproxy.com:1234
+define('DOMAIN', strstr(HOST . ':', ':', true)); // www.example.org | www.myproxy.com
 
 // PATHS
-$admParts = explode(DIRECTORY_SEPARATOR . 'adm_', __DIR__);
 define('WWW_PATH',     realpath($_SERVER['DOCUMENT_ROOT'])); // /var/www    Will get "SERVER_PATH" in v4.0
-define('ADMIDIO_PATH', $admParts[0]); // /var/www/subfolder
+// 33 is string length of: '/adm_program/system/constants.php'
+define('ADMIDIO_PATH', substr(__FILE__, 0, -33)); // /var/www/subfolder
 define('CURRENT_PATH', realpath($_SERVER['SCRIPT_FILENAME'])); // /var/www/subfolder/adm_program/index.php
+
+// SUBFOLDERS
+define('ADMIDIO_SUB_FOLDER', str_replace('\\', '/', substr(ADMIDIO_PATH, strlen(WWW_PATH)))); // /subfolder
+define('ADMIDIO_SUB_URL', (SECURE_PROXY ? '/' . $host : '') . ADMIDIO_SUB_FOLDER); // /subfolder | /www.example.com/subfolder
+
+$subfolderLength = strlen(ADMIDIO_SUB_FOLDER);
+
+// URLS
+define('SERVER_URL',  (HTTPS ? 'https://' : 'http://') . HOST); // https://www.example.org:1234 | https://www.myproxy.com:1234
+define('ADMIDIO_URL', SERVER_URL . ADMIDIO_SUB_URL); // https://www.example.org:1234/subfolder | https://www.myproxy.com:1234/www.example.com/subfolder
+define('FILE_URL',    ADMIDIO_URL . substr($_SERVER['SCRIPT_NAME'], $subfolderLength)); // https://www.example.org:1234/subfolder/adm_program/index.php
+define('CURRENT_URL', ADMIDIO_URL . substr($_SERVER['REQUEST_URI'], $subfolderLength)); // https://www.example.org:1234/subfolder/adm_program/index.php?param=value
 
 // FOLDERS
 define('FOLDER_DATA', '/adm_my_files');

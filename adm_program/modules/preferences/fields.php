@@ -3,14 +3,14 @@
  ***********************************************************************************************
  * Overview and maintenance of all profile fields
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // nur berechtigte User duerfen die Profilfelder bearbeiten
 if (!$gCurrentUser->isAdministrator())
@@ -37,6 +37,10 @@ $page->addJavascript('
     true
 );
 $page->addJavascript('
+    /**
+     * @param {string} direction
+     * @param {int}    usfID
+     */
     function moveCategory(direction, usfID) {
         var actRow = document.getElementById("row_usf_" + usfID);
         var childs = actRow.parentNode.childNodes;
@@ -47,8 +51,8 @@ $page->addJavascript('
         var secondSequence = 0;
 
         // erst einmal aktuelle Sequenz und vorherigen/naechsten Knoten ermitteln
-        for (i=0; i < childs.length; i++) {
-            if(childs[i].tagName === "TR") {
+        for (var i = 0; i < childs.length; i++) {
+            if (childs[i].tagName === "TR") {
                 actRowCount++;
                 if (actSequence > 0 && nextNode === null) {
                     nextNode = childs[i];
@@ -81,8 +85,8 @@ $page->addJavascript('
             // Nun erst mal die neue Position von dem gewaehlten Feld aktualisieren
             $.get(gRootPath + "/adm_program/modules/preferences/fields_function.php?usf_id=" + usfID + "&mode=4&sequence=" + direction);
         }
-    }'
-);
+    }
+');
 
 // get module menu
 $fieldsMenu = $page->getMenu();
@@ -102,10 +106,10 @@ $sql = 'SELECT *
     INNER JOIN '.TBL_CATEGORIES.'
             ON cat_id = usf_cat_id
          WHERE cat_type = \'USF\'
-           AND (  cat_org_id = '. $gCurrentOrganization->getValue('org_id'). '
+           AND (  cat_org_id = ?
                OR cat_org_id IS NULL )
       ORDER BY cat_sequence ASC, usf_sequence ASC';
-$statement = $gDb->query($sql);
+$statement = $gDb->queryPrepared($sql, array($gCurrentOrganization->getValue('org_id')));
 
 // Create table
 $table = new HtmlTable('tbl_profile_fields', $page, true);
@@ -139,17 +143,17 @@ while($row = $statement->fetch())
     $userField->clear();
     $userField->setArray($row);
 
-    if($categoryId != $userField->getValue('cat_id'))
+    if($categoryId !== (int) $userField->getValue('cat_id'))
     {
-        $block_id = 'admCategory'.$userField->getValue('usf_cat_id');
+        $blockId = 'admCategory'.$userField->getValue('usf_cat_id');
 
         $table->addTableBody();
         $table->addRow('', array('class' => 'admidio-group-heading'));
-        $table->addColumn('<span id="caret_'.$block_id.'" class="caret"></span>'.$userField->getValue('cat_name'),
-                          array('id' => 'group_'.$block_id, 'colspan' => '8'), 'td');
-        $table->addTableBody('id', $block_id);
+        $table->addColumn('<span id="caret_'.$blockId.'" class="caret"></span>'.$userField->getValue('cat_name'),
+                          array('id' => 'group_'.$blockId, 'colspan' => '8'), 'td');
+        $table->addTableBody('id', $blockId);
 
-        $categoryId = $userField->getValue('usf_cat_id');
+        $categoryId = (int) $userField->getValue('usf_cat_id');
     }
 
     // cut long text strings and provide tooltip

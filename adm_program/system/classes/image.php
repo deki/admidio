@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Diese Klasse verwaltet Bilder und bietet Methoden zum Anpassen dieser
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -28,7 +28,7 @@
  *                  - dreht das Bild um 90° in eine Richtung ("left"/"right")
  * scaleLargerSide($newMaxSize)
  *                  - skaliert die laengere Seite des Bildes auf den uebergebenen Pixelwert
- * scale($newXSize, $newYSize, $aspect_ratio = true)
+ * scale($newXSize, $newYSize, $maintainAspectRatio = true)
  *                  - das Bild wird in einer vorgegebenen maximalen Laenge/Hoehe skaliert
  * delete()         - entfernt das Bild aus dem Speicher
  */
@@ -303,8 +303,20 @@ class Image
             @ini_set('memory_limit', '50M');
         }
 
-        // create new resized image
-        $resizedImageResource = imagescale($this->imageResource, $newXSize, $newYSize);
+        if (version_compare(PHP_VERSION, '5.5.0', '>='))
+        {
+            // create new resized image
+            $resizedImageResource = imagescale($this->imageResource, $newXSize, $newYSize);
+        }
+        else // backwards compatibility for PHP-Version < 5.5
+        {
+            // create a new image
+            $resizedImageResource = imagecreatetruecolor($newXSize, $newYSize);
+
+            // copy image data to a new image with the new given size
+            imagecopyresampled($resizedImageResource, $this->imageResource, 0, 0, 0, 0, $newXSize, $newYSize, $this->imageWidth, $this->imageHeight);
+        }
+
         imagedestroy($this->imageResource);
 
         // update the class parameters to new image data

@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class manages access to database table adm_guestbook
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -41,8 +41,9 @@ class TableGuestbook extends TableAccess
         $this->db->startTransaction();
 
         // Delete all available comments to this guestbook entry
-        $sql = 'DELETE FROM '.TBL_GUESTBOOK_COMMENTS.' WHERE gbc_gbo_id = '.$this->getValue('gbo_id');
-        $this->db->query($sql);
+        $sql = 'DELETE FROM '.TBL_GUESTBOOK_COMMENTS.'
+                      WHERE gbc_gbo_id = ? -- $this->getValue(\'gbo_id\')';
+        $this->db->queryPrepared($sql, array($this->getValue('gbo_id')));
 
         $return = parent::delete();
 
@@ -144,9 +145,7 @@ class TableGuestbook extends TableAccess
             }
             elseif ($columnName === 'gbo_homepage')
             {
-                $newValue = admFuncCheckUrl($newValue);
-
-                if ($newValue === false)
+                if (admFuncCheckUrl($newValue) === false)
                 {
                     return false;
                 }

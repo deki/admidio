@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Various functions for download module
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -19,13 +19,12 @@
  * file_id   : Id of the file in the database
  * name      : Name of the file/folder that should be added to the database
  ***********************************************************************************************/
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
-// pruefen ob das Modul ueberhaupt aktiviert ist
+// check if the module is enabled and disallow access if it's disabled
 if ($gPreferences['enable_download_module'] != 1)
 {
-    // das Modul ist deaktiviert
     $gMessage->show($gL10n->get('SYS_MODULE_DISABLED'));
     // => EXIT
 }
@@ -102,7 +101,7 @@ elseif ($getMode === 3)
     try
     {
         $newFolderName = admFuncVariableIsValid($_POST, 'new_folder', 'file', array('requireValue' => true));
-        $newFolderDescription = admFuncVariableIsValid($_POST, 'new_folder', 'string');
+        $newFolderDescription = admFuncVariableIsValid($_POST, 'new_description', 'string');
 
         // get recordset of current folder from database
         $folder->getFolderForDownload($getFolderId);
@@ -162,6 +161,7 @@ elseif ($getMode === 3)
             $e->setNewMessage('DOW_FOLDER_NAME_INVALID');
         }
         $e->showHtml();
+        // => EXIT
     }
 }
 
@@ -269,6 +269,7 @@ elseif ($getMode === 4)
             $e->setNewMessage('DOW_FOLDER_NAME_INVALID');
         }
         $e->showHtml();
+        // => EXIT
     }
 }
 
@@ -331,6 +332,7 @@ elseif ($getMode === 6)
     catch(AdmException $e)
     {
         $e->showHtml();
+        // => EXIT
     }
 
     // Pruefen ob das neue Element eine Datei order ein Ordner ist.
@@ -385,6 +387,12 @@ elseif ($getMode === 7)
         $gMessage->show($gL10n->get('SYS_FIELD_EMPTY', $gL10n->get('DAT_VISIBLE_TO')));
         // => EXIT
     }
+    if(!isset($_POST['adm_roles_upload_right']))
+    {
+        // upload right need not to be set because download module administrators still
+        // have the right, so initialize the parameter
+        $_POST['adm_roles_upload_right'] = array();
+    }
 
     if ($getFolderId === 0 || !is_array($_POST['adm_roles_view_right']) || !is_array($_POST['adm_roles_upload_right']))
     {
@@ -412,9 +420,17 @@ elseif ($getMode === 7)
             $parentFolder->getFolderForDownload($folder->getValue('fol_fol_id_parent'));
         }
 
-        // Read current roles rights of the folder
+        // Read current view roles rights of the folder
         $rightFolderView = new RolesRights($gDb, 'folder_view', $getFolderId);
         $rolesFolderView = $rightFolderView->getRolesIds();
+
+        // Read current upload roles rights of the folder
+        $rightFolderUpload = new RolesRights($gDb, 'folder_upload', $getFolderId);
+        $rolesFolderUpload = $rightFolderUpload->getRolesIds();
+
+        // get new roles and removed roles
+        $addUploadRoles = array_diff($_POST['adm_roles_upload_right'], $rolesFolderUpload);
+        $removeUploadRoles = array_diff($rolesFolderUpload, $_POST['adm_roles_upload_right']);
 
         if(in_array('0', $_POST['adm_roles_view_right'], true))
         {
@@ -429,23 +445,18 @@ elseif ($getMode === 7)
             $folder->editPublicFlagOnFolder(false);
 
             // get new roles and removed roles
-            $addRoles = array_diff($_POST['adm_roles_view_right'], $rolesFolderView);
-            $removeRoles = array_diff($rolesFolderView, $_POST['adm_roles_view_right']);
+            $addViewRoles = array_merge(array_diff($_POST['adm_roles_view_right'], $rolesFolderView), $_POST['adm_roles_upload_right'], $rolesFolderUpload);
+            $removeViewRoles = array_diff($rolesFolderView, $_POST['adm_roles_view_right']);
 
-            $folder->addRolesOnFolder('folder_view', $addRoles);
-            $folder->removeRolesOnFolder('folder_view', $removeRoles);
+            $folder->addRolesOnFolder('folder_view', $addViewRoles);
+            $folder->removeRolesOnFolder('folder_view', $removeViewRoles);
+
+            // upload right should not contain removed view roles
+            $removeUploadRoles = array_merge($removeUploadRoles, $removeViewRoles);
         }
 
-        // save upload right
-        $rightFolderUpload = new RolesRights($gDb, 'folder_upload', $getFolderId);
-        $rolesFolderUpload = $rightFolderUpload->getRolesIds();
-
-        // get new roles and removed roles
-        $addRoles = array_diff($_POST['adm_roles_upload_right'], $rolesFolderUpload);
-        $removeRoles = array_diff($rolesFolderUpload, $_POST['adm_roles_upload_right']);
-
-        $folder->addRolesOnFolder('folder_upload', $addRoles);
-        $folder->removeRolesOnFolder('folder_upload', $removeRoles);
+        $folder->addRolesOnFolder('folder_upload', $addUploadRoles);
+        $folder->removeRolesOnFolder('folder_upload', $removeUploadRoles);
 
         $folder->save();
 
@@ -456,5 +467,6 @@ elseif ($getMode === 7)
     catch(AdmException $e)
     {
         $e->showHtml();
+        // => EXIT
     }
 }

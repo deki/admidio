@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Show current profile photo or uploaded session photo
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,7 +14,7 @@
  *             true  - show uploaded photo of current session
  ***********************************************************************************************
  */
-require('../../system/common.php');
+require(__DIR__ . '/../../system/common.php');
 
 // Initialize and check the parameters
 $getUserId   = admFuncVariableIsValid($_GET, 'usr_id',    'int', array('requireValue' => true));
@@ -27,7 +27,7 @@ $picPath = THEME_ADMIDIO_PATH. '/images/no_profile_pic.png';
 // read user data and show error if user doesn't exists
 $user = new User($gDb, $gProfileFields, $getUserId);
 
-if($user->getValue('usr_id') == 0)
+if((int) $user->getValue('usr_id') === 0)
 {
     $gMessage->show($gL10n->get('SYS_INVALID_PAGE_VIEW'));
     // => EXIT

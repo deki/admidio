@@ -66,11 +66,10 @@
                                              $gL10n->get('GBO_GUESTBOOK'), '/icons/guestbook.png');
                     }
 
-                    $moduleMenu->addItem('lists', FOLDER_MODULES . '/lists/lists.php',
-                                         $gL10n->get('LST_LISTS'), '/icons/lists.png');
-
-                    if($gValidLogin)
+                    if($gPreferences['lists_enable_module'] == 1 && $gValidLogin)
                     {
+                        $moduleMenu->addItem('lists', FOLDER_MODULES . '/lists/lists.php',
+                                             $gL10n->get('LST_LISTS'), '/icons/lists.png');
                         $moduleMenu->addItem('mylist', FOLDER_MODULES . '/lists/mylist.php',
                                              $gL10n->get('LST_MY_LIST'), '/icons/mylist.png');
                     }
@@ -133,10 +132,10 @@
 
 <p id="copyright">
     <a href="<?php echo ADMIDIO_HOMEPAGE; ?>" style="text-decoration: none;">
-        <img src="<?php echo THEME_URL; ?>/images/admidio_logo_20.png"
+        <img src="<?php echo THEME_URL; ?>/images/admidio_writing_100.png"
              alt="<?php echo $gL10n->get('SYS_ADMIDIO_SHORT_DESC'); ?>"
              title="<?php echo $gL10n->get('SYS_ADMIDIO_SHORT_DESC'); ?>"
              style="border: 0; vertical-align: bottom;" />
-    </a>
-    <span style="font-size: 9pt; padding-left: 8px;">&copy; 2004 - 2016&nbsp;&nbsp;<?php echo $gL10n->get('SYS_ADMIDIO_TEAM'); ?></span>
+    </a><br />
+    <span style="font-size: 9pt; padding-left: 8px;">&copy; 2004 - 2017&nbsp;&nbsp;<?php echo $gL10n->get('SYS_ADMIDIO_TEAM'); ?></span>
 </p>

@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Create and edit rooms
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,8 +14,8 @@
  *            (Default) SYS_ROOM
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getRoomId   = admFuncVariableIsValid($_GET, 'room_id',  'int');
@@ -69,19 +69,19 @@ $form->openGroupBox('gb_name_properties', $gL10n->get('SYS_NAME').' &amp; '.$gL1
 $form->addInput('room_name', $gL10n->get('SYS_ROOM'), $room->getValue('room_name'),
                 array('maxLength' => 100, 'property' => FIELD_REQUIRED));
 $form->addInput('room_capacity', $gL10n->get('ROO_CAPACITY').' ('.$gL10n->get('ROO_SEATING').')', $room->getValue('room_capacity'),
-                array('type' => 'number', 'minNumber' => 0, 'maxNumber' => 99999, 'property' => FIELD_REQUIRED));
+                array('type' => 'number', 'minNumber' => 0, 'maxNumber' => 99999, 'step' => 1, 'property' => FIELD_REQUIRED));
 $form->addInput('room_overhang', $gL10n->get('ROO_OVERHANG'), $room->getValue('room_overhang'),
-                array('type' => 'number', 'minNumber' => 0, 'maxNumber' => 99999, 'helpTextIdLabel' => 'DAT_ROOM_OVERHANG'));
+                array('type' => 'number', 'minNumber' => 0, 'maxNumber' => 99999, 'step' => 1, 'helpTextIdLabel' => 'DAT_ROOM_OVERHANG'));
 $form->closeGroupBox();
 $form->openGroupBox('gb_description', $gL10n->get('SYS_DESCRIPTION'), 'admidio-panel-editor');
 $form->addEditor('room_description', null, $room->getValue('room_description'), array('height' => '150px'));
 $form->closeGroupBox();
 
 $form->addSubmitButton('btn_save', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png'));
-$form->addHtml(admFuncShowCreateChangeInfoById($room->getValue('room_usr_id_create'),
-                                               $room->getValue('room_timestamp_create'),
-                                               $room->getValue('dat_usr_id_change'),
-                                               $room->getValue('room_timestamp_change')));
+$form->addHtml(admFuncShowCreateChangeInfoById(
+    (int) $room->getValue('room_usr_id_create'), $room->getValue('room_timestamp_create'),
+    (int) $room->getValue('dat_usr_id_change'),  $room->getValue('room_timestamp_change')
+));
 
 // add form to html page and show page
 $page->addHtml($form->show(false));

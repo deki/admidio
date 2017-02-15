@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class handle role rights, cards and other things of users
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -28,7 +28,7 @@ class Inventory extends TableInventory
 {
     public $mInventoryFieldsData;           ///< object with current user field structure
     public $mProfileFieldsData  = array();
-    protected $list_view_rights = array();  ///< Array ueber Listenrechte einzelner Rollen => Zugriff nur über getListViewRights()
+    protected $listViewRights = array();  ///< Array ueber Listenrechte einzelner Rollen => Zugriff nur über getListViewRights()
     protected $organizationId;              ///< the organization for which the rights are read, could be changed with method @b setOrganization
 
     /**
@@ -247,7 +247,7 @@ class Inventory extends TableInventory
                 if(($this->mInventoryFieldsData->getProperty($columnName, 'inf_disabled') == 1
                    && $gCurrentUser->editUsers())
                 || $this->mInventoryFieldsData->getProperty($columnName, 'inf_disabled') == 0
-                || ($gCurrentUser->getValue('inv_id') == 0 && $this->getValue('inv_id') == 0))
+                || ((int) $gCurrentUser->getValue('inv_id') === 0 && (int) $this->getValue('inv_id') === 0))
                 {
                     $returnCode = $this->mInventoryFieldsData->setValue($columnName, $newValue);
                 }
@@ -297,13 +297,14 @@ class Inventory extends TableInventory
                                 ON rol_id = mem_rol_id
                         INNER JOIN '.TBL_CATEGORIES.'
                                 ON cat_id = rol_cat_id
-                             WHERE mem_usr_id = '.$item->getValue('inv_id'). '
-                               AND mem_begin <= \''.DATE_NOW.'\'
-                               AND mem_end    > \''.DATE_NOW.'\'
+                             WHERE mem_usr_id = ? -- $item->getValue(\'inv_id\')
+                               AND mem_begin <= ? -- DATE_NOW
+                               AND mem_end    > ? -- DATE_NOW
                                AND rol_valid  = 1
-                               AND (  cat_org_id = '.$this->organizationId.'
+                               AND (  cat_org_id = ? -- $this->organizationId
                                    OR cat_org_id IS NULL ) ';
-                    $pdoStatement = $this->db->query($sql);
+                    $queryParams = array($item->getValue('inv_id'), DATE_NOW, DATE_NOW, $this->organizationId);
+                    $pdoStatement = $this->db->queryPrepared($sql, $queryParams);
 
                     if($pdoStatement->rowCount() > 0)
                     {
@@ -315,7 +316,7 @@ class Inventory extends TableInventory
                                 $viewProfile = true;
                             }
                             elseif($row['rol_this_list_view'] == 1
-                            && isset($this->list_view_rights[$row['rol_id']]))
+                            && isset($this->listViewRights[$row['rol_id']]))
                             {
                                 // nur Rollenmitglieder duerfen Rollenlisten/-profile sehen
                                 $viewProfile = true;

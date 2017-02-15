@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -131,18 +131,19 @@ class RolesRights extends TableAccess
      * If the sql will find more than one record the method returns @b false.
      * Per default all columns of the default table will be read and stored in the object.
      * @param string $sqlWhereCondition Conditions for the table to select one record
+     * @param array  $queryParams       The query params for the prepared statement
      * @return bool Returns @b true if one record is found
      * @see TableAccess#readDataById
      * @see TableAccess#readDataByColumns
      */
-    protected function readData($sqlWhereCondition)
+    protected function readData($sqlWhereCondition, array $queryParams = array())
     {
-        if(parent::readData($sqlWhereCondition))
+        if(parent::readData($sqlWhereCondition, $queryParams))
         {
             $sql = 'SELECT * FROM '.TBL_ROLES_RIGHTS_DATA.'
-                     WHERE rrd_ror_id    = '.$this->getValue('ror_id').'
-                       AND rrd_object_id = '.$this->objectId;
-            $rolesRightsStatement = $this->db->query($sql);
+                     WHERE rrd_ror_id    = ? -- $this->getValue(\'ror_id\')
+                       AND rrd_object_id = ? -- $this->objectId';
+            $rolesRightsStatement = $this->db->queryPrepared($sql, array($this->getValue('ror_id'), $this->objectId));
 
             while($row = $rolesRightsStatement->fetch())
             {

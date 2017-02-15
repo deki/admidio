@@ -3,13 +3,13 @@
  ***********************************************************************************************
  * PM list page
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // check if the call of the page was allowed
 if ($gPreferences['enable_pm_module'] != 1 && $gPreferences['enable_mail_module'] != 1 && $gPreferences['enable_chat_module'] != 1)
@@ -104,7 +104,7 @@ $moduleMessages = new ModuleMessages();
 $statement = $moduleMessages->msgGetUserEmails($gCurrentUser->getValue('usr_id'));
 if(isset($statement))
 {
-    require_once('messages_functions.php');
+    require_once(__DIR__ . '/messages_functions.php');
 
     while ($row = $statement->fetch())
     {
@@ -136,7 +136,7 @@ if(isset($statement))
 {
     while ($row = $statement->fetch())
     {
-        if($row['msg_usr_id_sender'] == $gCurrentUser->getValue('usr_id'))
+        if((int) $row['msg_usr_id_sender'] === (int) $gCurrentUser->getValue('usr_id'))
         {
             $user = new User($gDb, $gProfileFields, $row['msg_usr_id_receiver']);
         }
@@ -172,7 +172,7 @@ if(isset($statement))
 {
     while ($row = $statement->fetch())
     {
-        if($row['msg_usr_id_sender'] == $gCurrentUser->getValue('usr_id'))
+        if((int) $row['msg_usr_id_sender'] === (int) $gCurrentUser->getValue('usr_id'))
         {
             $user = new User($gDb, $gProfileFields, $row['msg_usr_id_receiver']);
         }

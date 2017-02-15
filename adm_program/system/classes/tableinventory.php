@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class manages access to database table adm_invent
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -50,8 +50,9 @@ class TableInventory extends TableAccess
     {
         $this->db->startTransaction();
 
-        $sql = 'DELETE FROM '.TBL_INVENT_DATA.' WHERE ind_itm_id = '. $this->getValue('inv_id');
-        $this->db->query($sql);
+        $sql = 'DELETE FROM '.TBL_INVENT_DATA.'
+                      WHERE ind_itm_id = ? -- $this->getValue(\'inv_id\')';
+        $this->db->queryPrepared($sql, array($this->getValue('inv_id')));
 
         $return = parent::delete();
 

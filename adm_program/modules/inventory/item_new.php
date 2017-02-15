@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Create or edit a inventory profile
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,7 +14,7 @@
  *              1 - Create a new item
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // Initialize and check the parameters
 $getItemId  = admFuncVariableIsValid($_GET, 'item_id',  'int');
@@ -87,10 +87,10 @@ if(isset($_SESSION['profile_request']))
 
     foreach($gInventoryFields->mInventoryFields as $field)
     {
-        $field_name = 'inf-'. $field->getValue('inf_id');
-        if(isset($_SESSION['profile_request'][$field_name]))
+        $fieldName = 'inf-'. $field->getValue('inf_id');
+        if(isset($_SESSION['profile_request'][$fieldName]))
         {
-            $inventory->setValue($field->getValue('inf_name_intern'), $_SESSION['profile_request'][$field_name]);
+            $inventory->setValue($field->getValue('inf_name_intern'), $_SESSION['profile_request'][$fieldName]);
         }
     }
 
@@ -191,7 +191,8 @@ foreach($gInventoryFields->mInventoryFields as $field)
             $form->addCheckbox(
                 'inf-'. $gInventoryFields->getProperty($field->getValue('inf_name_intern'), 'inf_id'),
                 $gInventoryFields->getProperty($field->getValue('inf_name_intern'), 'inf_name'),
-                $inventory->getValue($field->getValue('inf_name_intern')), $fieldProperty, $helpId, null,
+                (bool) $inventory->getValue($field->getValue('inf_name_intern')),
+                $fieldProperty, $helpId, null,
                 $gInventoryFields->getProperty($field->getValue('inf_name_intern'), 'inf_icon', 'database')
             );
         }
@@ -312,15 +313,15 @@ foreach($gInventoryFields->mInventoryFields as $field)
 // div-Container admGroupBoxBody und admGroupBox schliessen
 $form->closeGroupBox();
 
-$btn_image = 'disk.png';
-$btn_text  = $gL10n->get('SYS_SAVE');
-
-$form->addSubmitButton('btn_save', $btn_text, array('icon' => THEME_URL.'/icons/'.$btn_image));
+$form->addSubmitButton('btn_save', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png'));
 
 if($getNewItem == 0)
 {
     // show information about inventory who creates the recordset and changed it
-    $form->addHtml(admFuncShowCreateChangeInfoById($inventory->getValue('inv_usr_id_create'), $inventory->getValue('inv_timestamp_create'), $inventory->getValue('inv_usr_id_change'), $inventory->getValue('inv_timestamp_change')));
+    $form->addHtml(admFuncShowCreateChangeInfoById(
+        (int) $inventory->getValue('inv_usr_id_create'), $inventory->getValue('inv_timestamp_create'),
+        (int) $inventory->getValue('inv_usr_id_change'), $inventory->getValue('inv_timestamp_change')
+    ));
 }
 
 $page->addHtml($form->show(false));

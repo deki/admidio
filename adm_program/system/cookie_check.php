@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Check if cookies could be created in current browser of the user
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -12,7 +12,7 @@
  * message_code : ID of the message from language-XML-file, that is shown after login
  ***********************************************************************************************
  */
-require_once('common.php');
+require_once(__DIR__ . '/common.php');
 
 // Initialize and check the parameters
 $getMessageCode = admFuncVariableIsValid($_GET, 'message_code', 'string', array('requireValue' => true));

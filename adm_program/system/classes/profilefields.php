@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -104,7 +104,7 @@ class ProfileFields
     {
         foreach ($this->mProfileFields as $field)
         {
-            if ((int) $field->getValue('usf_id') === $fieldId)
+            if ((int) $field->getValue('usf_id') === (int) $fieldId)
             {
                 return $field->getValue($column, $format);
             }
@@ -260,13 +260,17 @@ class ProfileFields
                 case 'URL':
                     if ($value !== '')
                     {
+                        $displayValue = $value;
+
+                        // trim "http://", "https://", "//"
+                        if (strpos($displayValue, '//') !== false)
+                        {
+                            $displayValue = substr($displayValue, strpos($displayValue, '//') + 2);
+                        }
+                        // trim after the 35th char
                         if (strlen($value) > 35)
                         {
-                            $displayValue = substr($value, strpos($value, '//') + 2, 35) . '...';
-                        }
-                        else
-                        {
-                            $displayValue = substr($value, strpos($value, '//') + 2);
+                            $displayValue = substr($displayValue, 0, 35) . '...';
                         }
                         $htmlValue = '<a href="' . $value . '" target="_blank" title="' . $value . '">' . $displayValue . '</a>';
                     }
@@ -294,7 +298,7 @@ class ProfileFields
                 // replace a variable in url with user value
                 if (strpos($usfUrl, '#user_content#') !== false)
                 {
-                    $htmlValue = preg_replace('/#user_content#/', $value, $htmlValue);
+                    $htmlValue = str_replace('#user_content#', $value, $htmlValue);
                 }
             }
             $value = $htmlValue;
@@ -428,9 +432,9 @@ class ProfileFields
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = usf_cat_id
                  WHERE cat_org_id IS NULL
-                    OR cat_org_id = '.$organizationId.'
+                    OR cat_org_id = ? -- $organizationId
               ORDER BY cat_sequence ASC, usf_sequence ASC';
-        $userFieldsStatement = $this->mDb->query($sql);
+        $userFieldsStatement = $this->mDb->queryPrepared($sql, array($organizationId));
 
         while ($row = $userFieldsStatement->fetch())
         {
@@ -467,8 +471,8 @@ class ProfileFields
                       FROM '.TBL_USER_DATA.'
                 INNER JOIN '.TBL_USER_FIELDS.'
                         ON usf_id = usd_usf_id
-                     WHERE usd_usr_id = '.$userId;
-            $userDataStatement = $this->mDb->query($sql);
+                     WHERE usd_usr_id = ? -- $userId';
+            $userDataStatement = $this->mDb->queryPrepared($sql, array($userId));
 
             while ($row = $userDataStatement->fetch())
             {

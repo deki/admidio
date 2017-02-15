@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Show a list of all downloads
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -12,8 +12,8 @@
  * folder_id : Id of the current folder that should be shown
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/file_extension_icons.php');
+require_once(__DIR__ . '/../../system/common.php');
+require_once(__DIR__ . '/../../system/file_extension_icons.php');
 
 unset($_SESSION['download_request']);
 
@@ -36,6 +36,7 @@ try
 catch(AdmException $e)
 {
     $e->showHtml();
+    // => EXIT
 }
 
 // set headline of the script
@@ -64,10 +65,15 @@ $page = new HtmlPage($headline);
 
 $page->enableModal();
 $page->addJavascript('
-    $("body").on("hidden.bs.modal", ".modal", function () { $(this).removeData("bs.modal"); location.reload(); });
+    $("body").on("hidden.bs.modal", ".modal", function() {
+        $(this).removeData("bs.modal");
+        location.reload();
+    });
     $("#menu_item_upload_files").attr("data-toggle", "modal");
     $("#menu_item_upload_files").attr("data-target", "#admidio_modal");
-    ', true);
+    ',
+    true
+);
 
 // get module menu
 $DownloadsMenu = $page->getMenu();
@@ -126,10 +132,8 @@ $downloadOverview->setMessageIfNoRowsFound('DOW_FOLDER_NO_FILES', 'warning');
 if (isset($folderContent['folders']))
 {
     // First get possible sub folders
-    for($i = 0, $iMax = count($folderContent['folders']); $i < $iMax; ++$i)
+    foreach ($folderContent['folders'] as $nextFolder)
     {
-        $nextFolder = $folderContent['folders'][$i];
-
         $folderDescription = '';
         if($nextFolder['fol_description'] !== null)
         {
@@ -179,18 +183,16 @@ if (isset($folderContent['folders']))
 // Get contained files
 if (isset($folderContent['files']))
 {
-    for($i = 0, $iMax = count($folderContent['files']); $i < $iMax; ++$i)
+    foreach ($folderContent['files'] as $nextFile)
     {
-        $nextFile = $folderContent['files'][$i];
-
         // Check filetyp
         $fileExtension  = admStrToLower(substr($nextFile['fil_name'], strrpos($nextFile['fil_name'], '.')+1));
 
         // Choose icon for the file
         $iconFile = 'page_white_question.png';
-        if(array_key_exists($fileExtension, $icon_file_extension))
+        if(array_key_exists($fileExtension, $iconFileExtension))
         {
-            $iconFile = $icon_file_extension[$fileExtension];
+            $iconFile = $iconFileExtension[$fileExtension];
         }
 
         // Format timestamp
@@ -263,20 +265,19 @@ if ($gCurrentUser->editDownloadRight())
         $adminTable->setColumnAlignByArray(array('left', 'left', 'left', 'right'));
 
         // create array with all column heading values
-        $columnHeading = array('<img class="admidio-icon-info" src="'. THEME_URL. '/icons/download.png" alt="'.$gL10n->get('SYS_FOLDER').' / '.$gL10n->get('DOW_FILE_TYPE').'" title="'.$gL10n->get('SYS_FOLDER').' / '.$gL10n->get('DOW_FILE_TYPE').'" />',
-                               $gL10n->get('SYS_NAME'),
-                               $gL10n->get('SYS_SIZE'),
-                               '&nbsp;');
+        $columnHeading = array(
+            '<img class="admidio-icon-info" src="'. THEME_URL. '/icons/download.png" alt="'.$gL10n->get('SYS_FOLDER').' / '.$gL10n->get('DOW_FILE_TYPE').'" title="'.$gL10n->get('SYS_FOLDER').' / '.$gL10n->get('DOW_FILE_TYPE').'" />',
+            $gL10n->get('SYS_NAME'),
+            $gL10n->get('SYS_SIZE'),
+            '&nbsp;'
+        );
         $adminTable->addRowHeadingByArray($columnHeading);
 
         // Get folders
         if (isset($folderContent['additionalFolders']))
         {
-            for($i = 0, $iMax = count($folderContent['additionalFolders']); $i < $iMax; ++$i)
+            foreach ($folderContent['additionalFolders'] as $nextFolder)
             {
-
-                $nextFolder = $folderContent['additionalFolders'][$i];
-
                 $columnValues = array('<img src="'. THEME_URL. '/icons/download.png" alt="'.$gL10n->get('SYS_FOLDER').'" title="'.$gL10n->get('SYS_FOLDER').'" />',
                                       $nextFolder['fol_name'],
                                       '',
@@ -289,19 +290,16 @@ if ($gCurrentUser->editDownloadRight())
         // Get files
         if (isset($folderContent['additionalFiles']))
         {
-            for($i = 0, $iMax = count($folderContent['additionalFiles']); $i < $iMax; ++$i)
+            foreach ($folderContent['additionalFiles'] as $nextFile)
             {
-
-                $nextFile = $folderContent['additionalFiles'][$i];
-
                 // Get filetyp
                 $fileExtension = admStrToLower(substr($nextFile['fil_name'], strrpos($nextFile['fil_name'], '.')+1));
 
                 // Choose icon for the file
                 $iconFile = 'page_white_question.png';
-                if(array_key_exists($fileExtension, $icon_file_extension))
+                if(array_key_exists($fileExtension, $iconFileExtension))
                 {
-                    $iconFile = $icon_file_extension[$fileExtension];
+                    $iconFile = $iconFileExtension[$fileExtension];
                 }
 
                 $columnValues = array('<img src="'. THEME_URL. '/icons/'.$iconFile.'" alt="'.$gL10n->get('SYS_FILE').'" title="'.$gL10n->get('SYS_FILE').'" /></a>',

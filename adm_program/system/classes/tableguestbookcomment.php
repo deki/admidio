@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class manages access to database table adm_guestbook_comments
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -113,7 +113,7 @@ class TableGuestbookComment extends TableAccess
             return parent::setValue($columnName, $newValue, false);
         }
 
-        if ($newValue !== '' && $columnName === 'gbc_email')
+        if ($columnName === 'gbc_email' && $newValue !== '')
         {
             $newValue = admStrToLower($newValue);
 

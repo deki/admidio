@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Upload and save new user photo
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -17,8 +17,8 @@
  *        delete    : delete current photo in database
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getUserId = admFuncVariableIsValid($_GET, 'usr_id', 'int',    array('requireValue' => true));
@@ -59,7 +59,7 @@ if($gPreferences['profile_photo_storage'] == 1)
     }
 }
 
-if($user->getValue('usr_id') == 0)
+if((int) $user->getValue('usr_id') === 0)
 {
     $gMessage->show($gL10n->get('SYS_INVALID_PAGE_VIEW'));
     // => EXIT
@@ -157,7 +157,7 @@ elseif($getMode === 'delete')
 if($getMode === 'choose')
 {
     // set headline
-    if($getUserId == $gCurrentUser->getValue('usr_id'))
+    if($getUserId === (int) $gCurrentUser->getValue('usr_id'))
     {
         $headline = $gL10n->get('PRO_EDIT_MY_PROFILE_PICTURE');
     }
@@ -245,7 +245,7 @@ elseif($getMode === 'upload')
     // Image-Objekt löschen
     $userImage->delete();
 
-    if($getUserId == $gCurrentUser->getValue('usr_id'))
+    if($getUserId === (int) $gCurrentUser->getValue('usr_id'))
     {
         $headline = $gL10n->get('PRO_EDIT_MY_PROFILE_PICTURE');
     }

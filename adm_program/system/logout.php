@@ -3,12 +3,12 @@
  ***********************************************************************************************
  * Logout current user and delete cookie
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
-require_once('common.php');
+require_once(__DIR__ . '/common.php');
 
 // remove user from session
 $gCurrentSession->logout();
@@ -30,9 +30,7 @@ $gCurrentUser->clear();
 // set homepage to logout page
 $gHomepage = ADMIDIO_URL . '/' . $gPreferences['homepage_logout'];
 
-$message_code = 'SYS_LOGOUT_SUCCESSFUL';
-
 // message logout successful and go to homepage
 $gMessage->setForwardUrl($gHomepage, 2000);
-$gMessage->show($gL10n->get($message_code));
+$gMessage->show($gL10n->get('SYS_LOGOUT_SUCCESSFUL'));
 // => EXIT

@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Konfigurationsdatei fuer Admidio-Plugin Birthday
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -55,8 +55,8 @@ $plg_link_target = '_self';
 $plg_rolle_sql = '';
 
 // Angabe in welcher Sortierfolge die Geburtstage dargestellt werden sollen
-// Aufsteigend bzw. absteigend "asc bzw. desc"
-$plg_sort_sql = 'desc';
+// Aufsteigend bzw. absteigend "ASC bzw. DESC"
+$plg_sort_sql = 'DESC';
 
 // Soll die Überschrift des Plugins angezeigt werden
 // 1 = (Default) Überschrift wird angezeigt

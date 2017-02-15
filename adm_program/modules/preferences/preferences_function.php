@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Save organization preferences
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -16,8 +16,8 @@
  * form         - The name of the form preferences that were submitted.
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getMode = admFuncVariableIsValid($_GET, 'mode', 'int', array('defaultValue' => 1));
@@ -109,6 +109,16 @@ switch($getMode)
 
                 case 'email_dispatch':
                     $checkboxes = array('mail_smtp_auth');
+
+                    if($_POST['mail_sendmail_address'] !== '')
+                    {
+                        $_POST['mail_sendmail_address'] = admStrToLower($_POST['mail_sendmail_address']);
+                        if(!strValidCharacters($_POST['mail_sendmail_address'], 'email'))
+                        {
+                            $gMessage->show($gL10n->get('SYS_EMAIL_INVALID', $gL10n->get('MAI_SENDER_EMAIL')));
+                            // => EXIT
+                        }
+                    }
                     break;
 
                 case 'system_notification':
@@ -154,22 +164,12 @@ switch($getMode)
                     break;
 
                 case 'lists':
-                    $checkboxes = array('lists_hide_overview_details');
+                    $checkboxes = array('lists_enable_module', 'lists_hide_overview_details');
                     break;
 
                 case 'messages':
                     $checkboxes = array('enable_mail_module', 'enable_pm_module', 'enable_chat_module', 'enable_mail_captcha',
                                         'mail_html_registered_users', 'mail_into_to', 'mail_show_former');
-
-                    if($_POST['mail_sendmail_address'] !== '')
-                    {
-                        $_POST['mail_sendmail_address'] = admStrToLower($_POST['mail_sendmail_address']);
-                        if(!strValidCharacters($_POST['mail_sendmail_address'], 'email'))
-                        {
-                            $gMessage->show($gL10n->get('SYS_EMAIL_INVALID', $gL10n->get('MAI_SENDER_EMAIL')));
-                            // => EXIT
-                        }
-                    }
                     break;
 
                 case 'photos':
@@ -182,7 +182,7 @@ switch($getMode)
                     break;
 
                 case 'events':
-                    $checkboxes = array('enable_dates_ical', 'dates_show_map_link', 'dates_show_rooms');
+                    $checkboxes = array('enable_dates_ical', 'dates_show_map_link', 'dates_show_rooms', 'dates_save_all_confirmations');
                     break;
 
                 case 'links':
@@ -340,25 +340,25 @@ switch($getMode)
         $newOrganization = new Organization($gDb, $_POST['orgaShortName']);
         $newOrganization->setValue('org_longname', $_POST['orgaLongName']);
         $newOrganization->setValue('org_shortname', $_POST['orgaShortName']);
-        $newOrganization->setValue('org_homepage', $_SERVER['HTTP_HOST']);
+        $newOrganization->setValue('org_homepage', ADMIDIO_URL);
         $newOrganization->save();
 
         // write all preferences from preferences.php in table adm_preferences
-        require_once('../../installation/db_scripts/preferences.php');
+        require_once(__DIR__ . '/../../installation/db_scripts/preferences.php');
 
         // set some specific preferences whose values came from user input of the installation wizard
-        $orga_preferences['email_administrator'] = $_POST['orgaEmail'];
-        $orga_preferences['system_language']     = $gPreferences['system_language'];
+        $defaultOrgPreferences['email_administrator'] = $_POST['orgaEmail'];
+        $defaultOrgPreferences['system_language']     = $gPreferences['system_language'];
 
         // create all necessary data for this organization
-        $newOrganization->setPreferences($orga_preferences, false);
+        $newOrganization->setPreferences($defaultOrgPreferences, false);
         $newOrganization->createBasicData((int) $gCurrentUser->getValue('usr_id'));
 
         // if installation of second organization than show organization select at login
         if($gCurrentOrganization->countAllRecords() === 2)
         {
             $sql = 'UPDATE '.TBL_PREFERENCES.' SET prf_value = 1
-                     WHERE prf_name = \'system_organization_select\' ';
+                     WHERE prf_name = \'system_organization_select\'';
             $gDb->query($sql);
         }
 

@@ -3,39 +3,39 @@
  ***********************************************************************************************
  * Login Form
  *
- * Version 1.8.0
+ * Version 1.9.0
  *
  * Login Form stellt das Loginformular mit den entsprechenden Feldern dar,
  * damit sich ein Benutzer anmelden kann. Ist der Benutzer angemeldet, so
  * werden an der Stelle der Felder nun nützliche Informationen des Benutzers
  * angezeigt.
  *
- * Compatible with Admidio version 3.1
+ * Compatible with Admidio version 3.2
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
 
 // create path to plugin
-$plugin_folder_pos = strpos(__FILE__, 'adm_plugins') + 11;
-$plugin_file_pos   = strpos(__FILE__, 'login_form.php');
-$plugin_folder     = substr(__FILE__, $plugin_folder_pos + 1, $plugin_file_pos - $plugin_folder_pos - 2);
+$pluginFolderPos = strpos(__FILE__, 'adm_plugins') + 11;
+$pluginFilePos   = strpos(__FILE__, 'login_form.php');
+$pluginFolder    = substr(__FILE__, $pluginFolderPos + 1, $pluginFilePos - $pluginFolderPos - 2);
 
 // initialize parameters
 $iconCode = null;
 
 if(!defined('PLUGIN_PATH'))
 {
-    define('PLUGIN_PATH', substr(__FILE__, 0, $plugin_folder_pos));
+    define('PLUGIN_PATH', substr(__FILE__, 0, $pluginFolderPos));
 }
 require_once(PLUGIN_PATH. '/../adm_program/system/common.php');
 
 // Sprachdatei des Plugins einbinden
-$gL10n->addLanguagePath(PLUGIN_PATH. '/'.$plugin_folder.'/languages');
+$gL10n->addLanguagePath(PLUGIN_PATH. '/'.$pluginFolder.'/languages');
 
-require_once(PLUGIN_PATH. '/'.$plugin_folder.'/config.php');
+require_once(PLUGIN_PATH. '/'.$pluginFolder.'/config.php');
 
 // pruefen, ob alle Einstellungen in config.php gesetzt wurden
 // falls nicht, hier noch mal die Default-Werte setzen
@@ -80,7 +80,7 @@ if(isset($page) && $page instanceof \HtmlPage)
     $page->addCssFile(ADMIDIO_URL . FOLDER_PLUGINS . '/login_form/login_form.css');
 }
 
-echo '<div id="plugin_'. $plugin_folder. '" class="admidio-plugin-content">';
+echo '<div id="plugin_'. $pluginFolder. '" class="admidio-plugin-content">';
     if($gValidLogin)
     {
         echo '<h3>'.$gL10n->get('SYS_REGISTERED_AS').'</h3>';
@@ -195,8 +195,10 @@ else
         $sql = 'SELECT org_id, org_longname
                   FROM '.TBL_ORGANIZATIONS.'
               ORDER BY org_longname ASC, org_shortname ASC';
-        $form->addSelectBoxFromSql('plg_org_id', $gL10n->get('SYS_ORGANIZATION'), $gDb, $sql,
-            array('defaultValue' => $gCurrentOrganization->getValue('org_id'), 'showContextDependentFirstEntry' => false));
+        $form->addSelectBoxFromSql(
+            'plg_org_id', $gL10n->get('SYS_ORGANIZATION'), $gDb, $sql,
+            array('defaultValue' => $gCurrentOrganization->getValue('org_id'), 'showContextDependentFirstEntry' => false)
+        );
     }
 
     if($gPreferences['enable_auto_login'] == 1)
@@ -232,10 +234,10 @@ else
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = rol_cat_id
                  WHERE rol_administrator = 1
-                   AND rol_name LIKE \''.$gL10n->get('SYS_ADMINISTRATOR').'\'
-                   AND (  cat_org_id = '. $gCurrentOrganization->getValue('org_id').'
-                       OR cat_org_id IS NULL ) ';
-        $administratorStatement = $gDb->query($sql);
+                   AND rol_name = ? -- $gL10n->get(\'SYS_ADMINISTRATOR\')
+                   AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
+                       OR cat_org_id IS NULL )';
+        $administratorStatement = $gDb->queryPrepared($sql, array($gL10n->get('SYS_ADMINISTRATOR'), $gCurrentOrganization->getValue('org_id')));
 
         // create role object for administrator
         $roleAdministrator = new TableRoles($gDb, (int) $administratorStatement->fetchColumn());

@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Preview of ecard
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -11,8 +11,8 @@
 
 // preview will be called before form is send, so there are now POST parameters available
 // then show nothing. Second call is with POST parameters then show preview
-require_once('../../system/common.php');
-require_once('ecard_function.php');
+require_once(__DIR__ . '/../../system/common.php');
+require_once(__DIR__ . '/ecard_function.php');
 
 //$gMessage->showTextOnly(true);
 $gMessage->showThemeBody(false);
@@ -57,7 +57,7 @@ echo '
 </div>
 <div class="modal-body" id="preview_content">';
 
-    // show output of parsed template
-    echo $funcClass->parseEcardTemplate($imageUrl, $ecardMessage, $ecardDataToParse, $nameRecipient, $emailRecipient);
+// show output of parsed template
+echo $funcClass->parseEcardTemplate($imageUrl, $ecardMessage, $ecardDataToParse, $nameRecipient, $emailRecipient);
 
 echo '</div>';

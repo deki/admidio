@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -156,7 +156,7 @@ class ModuleDates extends Modules
 
         if ($limit === null)
         {
-            $limit = $gPreferences['dates_per_page'];
+            $limit = (int) $gPreferences['dates_per_page'];
         }
 
         if ($gPreferences['system_show_create_edit'] == 1)
@@ -174,14 +174,14 @@ class ModuleDates extends Modules
         }
 
         // read dates from database
-        $sql = 'SELECT DISTINCT cat.*, dat.*, mem.mem_usr_id AS member_date_role, mem.mem_leader,' . $additionalFields . '
-                  FROM ' . TBL_DATE_ROLE . ' dtr
-            INNER JOIN ' . TBL_DATES . ' dat
+        $sql = 'SELECT DISTINCT cat.*, dat.*, mem.mem_usr_id AS member_date_role, mem.mem_approved as member_approval_state, mem.mem_leader,' . $additionalFields . '
+                  FROM ' . TBL_DATE_ROLE . ' AS dtr
+            INNER JOIN ' . TBL_DATES . ' AS dat
                     ON dat_id = dtr_dat_id
-            INNER JOIN ' . TBL_CATEGORIES . ' cat
+            INNER JOIN ' . TBL_CATEGORIES . ' AS cat
                     ON cat_id = dat_cat_id
                        ' . $this->sqlAdditionalTablesGet('data') . '
-             LEFT JOIN ' . TBL_MEMBERS . ' mem
+             LEFT JOIN ' . TBL_MEMBERS . ' AS mem
                     ON mem.mem_rol_id = dat_rol_id
                    AND mem.mem_usr_id = ' . $gCurrentUser->getValue('usr_id') . '
                    AND mem.mem_begin <= \'' . DATE_NOW . '\'
@@ -191,7 +191,7 @@ class ModuleDates extends Modules
                            AND cat_org_id IN (' . $gCurrentOrganization->getFamilySQL() . ')
                            )
                        )
-                       ' . $this->sqlConditionsGet() . '
+                       ' . $this->getSqlConditions() . '
                        ORDER BY dat_begin ' . $this->order;
 
         // Parameter
@@ -204,7 +204,7 @@ class ModuleDates extends Modules
             $sql .= ' OFFSET ' . $startElement;
         }
 
-        $datesStatement = $gDb->query($sql);
+        $datesStatement = $gDb->query($sql); // TODO add more params
 
         // array for results
         return array(
@@ -265,14 +265,14 @@ class ModuleDates extends Modules
                 INNER JOIN ' . TBL_CATEGORIES . '
                         ON cat_id = dat_cat_id
                            ' . $this->sqlAdditionalTablesGet('count') . '
-                     WHERE ( cat_org_id = ' . $gCurrentOrganization->getValue('org_id') . '
+                     WHERE ( cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                            OR  (   dat_global = 1
                                AND cat_org_id IN (' . $gCurrentOrganization->getFamilySQL() . ')
                                )
                            )'
-                           . $this->sqlConditionsGet();
+                           . $this->getSqlConditions();
 
-            $statement = $gDb->query($sql);
+            $statement = $gDb->queryPrepared($sql, array($gCurrentOrganization->getValue('org_id'))); // TODO add more params
 
             return (int) $statement->fetchColumn();
         }
@@ -384,16 +384,16 @@ class ModuleDates extends Modules
             {
                 // Tables for showing firstname and lastname of create and last change user
                 $additionalTables = '
-                    LEFT JOIN ' . TBL_USER_DATA . ' cre_surname
+                    LEFT JOIN ' . TBL_USER_DATA . ' AS cre_surname
                            ON cre_surname.usd_usr_id = dat_usr_id_create
                           AND cre_surname.usd_usf_id = ' . $gProfileFields->getProperty('LAST_NAME', 'usf_id') . '
-                    LEFT JOIN ' . TBL_USER_DATA . ' cre_firstname
+                    LEFT JOIN ' . TBL_USER_DATA . ' AS cre_firstname
                            ON cre_firstname.usd_usr_id = dat_usr_id_create
                           AND cre_firstname.usd_usf_id = ' . $gProfileFields->getProperty('FIRST_NAME', 'usf_id') . '
-                    LEFT JOIN ' . TBL_USER_DATA . ' cha_surname
+                    LEFT JOIN ' . TBL_USER_DATA . ' AS cha_surname
                            ON cha_surname.usd_usr_id = dat_usr_id_change
                           AND cha_surname.usd_usf_id = ' . $gProfileFields->getProperty('LAST_NAME', 'usf_id') . '
-                    LEFT JOIN ' . TBL_USER_DATA . ' cha_firstname
+                    LEFT JOIN ' . TBL_USER_DATA . ' AS cha_firstname
                            ON cha_firstname.usd_usr_id = dat_usr_id_change
                           AND cha_firstname.usd_usf_id = ' . $gProfileFields->getProperty('FIRST_NAME', 'usf_id');
             }
@@ -401,9 +401,9 @@ class ModuleDates extends Modules
             {
                 // Tables for showing username of create and last change user
                 $additionalTables = '
-                    LEFT JOIN '. TBL_USERS .' cre_username
+                    LEFT JOIN '. TBL_USERS .' AS cre_username
                            ON cre_username.usr_id = dat_usr_id_create
-                    LEFT JOIN '. TBL_USERS .' cha_username
+                    LEFT JOIN '. TBL_USERS .' AS cha_username
                            ON cha_username.usr_id = dat_usr_id_change ';
             }
         }
@@ -415,7 +415,7 @@ class ModuleDates extends Modules
      * Prepare SQL Statement.
      * @return string
      */
-    private function sqlConditionsGet()
+    private function getSqlConditions()
     {
         global $gValidLogin, $gCurrentUser;
 
@@ -458,7 +458,7 @@ class ModuleDates extends Modules
         if ($usrId > 0)
         {
             $subSelect = '(SELECT mem_rol_id
-                             FROM ' . TBL_MEMBERS . ' mem2
+                             FROM ' . TBL_MEMBERS . ' AS mem2
                             WHERE mem2.mem_usr_id = ' . $usrId . '
                               AND mem2.mem_begin <= dat_begin
                               AND mem2.mem_end   >= dat_end)';

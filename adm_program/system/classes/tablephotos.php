@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class manages access to database table adm_photos
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -16,12 +16,12 @@
  *
  * Beside the methods of the parent class there are the following additional methods:
  *
- * countImages($pho_id = 0)    - Rekursive Funktion gibt die Anzahl aller Bilder
+ * countImages($phoId = 0)     - Rekursive Funktion gibt die Anzahl aller Bilder
  *                               inkl. der Unteralben zurueck
- * shuffleImage($pho_id = 0)   - Rekursive Funktion zum Auswaehlen eines
+ * shuffleImage($phoId = 0)    - Rekursive Funktion zum Auswaehlen eines
  *                               Beispielbildes aus einem moeglichst hohen Album
- * createFolder()      - erzeugt den entsprechenden Ordner unter adm_my_files/photos
- * deleteInDatabase($photo_id) - Rekursive Funktion die die uebergebene Veranstaltung
+ * createFolder()              - erzeugt den entsprechenden Ordner unter adm_my_files/photos
+ * deleteInDatabase($photoId)  - Rekursive Funktion die die uebergebene Veranstaltung
  *                               und alle Unterveranstaltungen loescht
  * deleteInFilesystem($folder) - Rekursive Funktion die alles innerhalb des uebergebenen
  *                               Ordners mit Unterordnern und allen Dateien loescht
@@ -63,9 +63,9 @@ class TablePhotos extends TableAccess
         // Get all sub-albums
         $sql = 'SELECT pho_id, pho_quantity
                   FROM '.TBL_PHOTOS.'
-                 WHERE pho_pho_id_parent = '.$phoId.'
+                 WHERE pho_pho_id_parent = ? -- $phoId
                    AND pho_locked = 0';
-        $childAlbumsStatement = $this->db->query($sql);
+        $childAlbumsStatement = $this->db->queryPrepared($sql, array($phoId));
 
         while ($phoRow = $childAlbumsStatement->fetch())
         {
@@ -133,8 +133,8 @@ class TablePhotos extends TableAccess
         // erst einmal rekursiv zur tiefsten Tochterveranstaltung gehen
         $sql = 'SELECT pho_id
                   FROM '.TBL_PHOTOS.'
-                 WHERE pho_pho_id_parent = '.$photoId;
-        $childAlbumStatement = $this->db->query($sql);
+                 WHERE pho_pho_id_parent = ? -- $photoId';
+        $childAlbumStatement = $this->db->queryPrepared($sql, array($photoId));
 
         while ($phoId = $childAlbumStatement->fetchColumn())
         {
@@ -163,8 +163,8 @@ class TablePhotos extends TableAccess
             {
                 // Veranstaltung jetzt in DB loeschen
                 $sql = 'DELETE FROM '.TBL_PHOTOS.'
-                         WHERE pho_id = '.$photoId;
-                $this->db->query($sql);
+                         WHERE pho_id = ? -- $photoId';
+                $this->db->queryPrepared($sql, array($photoId));
             }
         }
 
@@ -183,8 +183,8 @@ class TablePhotos extends TableAccess
         {
             $sql = 'SELECT COUNT(*) AS count
                       FROM '.TBL_PHOTOS.'
-                     WHERE pho_pho_id_parent = '.$this->getValue('pho_id');
-            $countChildAlbums = $this->db->query($sql);
+                     WHERE pho_pho_id_parent = ? -- $this->getValue(\'pho_id\')';
+            $countChildAlbums = $this->db->queryPrepared($sql, array($this->getValue('pho_id')));
 
             if ($countChildAlbums->fetchColumn() > 0)
             {
@@ -248,10 +248,10 @@ class TablePhotos extends TableAccess
             // kein Bild vorhanden, dann in einem Unteralbum suchen
             $sql = 'SELECT pho_id, pho_begin, pho_quantity
                       FROM '.TBL_PHOTOS.'
-                     WHERE pho_pho_id_parent = '.$phoId.'
+                     WHERE pho_pho_id_parent = ? -- $phoId
                        AND pho_locked = 0
                   ORDER BY pho_quantity DESC';
-            $childAlbumsStatement = $this->db->query($sql);
+            $childAlbumsStatement = $this->db->queryPrepared($sql, array($phoId));
 
             while ($phoRow = $childAlbumsStatement->fetch())
             {

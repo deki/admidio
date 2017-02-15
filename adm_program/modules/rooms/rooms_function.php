@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Various functions for rooms handling
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,7 +14,7 @@
  *           2 - delete room
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // Initialize and check the parameters
 $getRoomId = admFuncVariableIsValid($_GET, 'room_id', 'int');
@@ -61,7 +61,7 @@ if ($getMode === 1)
         }
     }
     // Daten in Datenbank schreiben
-    $return_code = $room->save();
+    $room->save();
 
     unset($_SESSION['rooms_request']);
     $gNavigation->deleteLastUrl();
@@ -74,10 +74,10 @@ elseif ($getMode === 2)
 {
     $sql = 'SELECT *
               FROM '.TBL_DATES.'
-             WHERE dat_room_id = '.$getRoomId;
-    $statement = $gDb->query($sql);
-    $row = $statement->rowCount();
-    if($row === 0)
+             WHERE dat_room_id = ?';
+    $statement = $gDb->queryPrepared($sql, array($getRoomId));
+
+    if($statement->rowCount() === 0)
     {
         $room->delete();
         echo 'done';

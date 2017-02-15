@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class manages access to database table adm_invent_fields
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -19,14 +19,14 @@ class TableInventoryField extends TableAccess
      * Constructor that will create an object of a recordset of the table adm_invent_fields.
      * If the id is set than the specific item field will be loaded.
      * @param \Database $database Object of the class Database. This should be the default global object @b $gDb.
-     * @param int       $inf_id   The recordset of the item field with this id will be loaded. If id isn't set than an empty object of the table is created.
+     * @param int       $infId    The recordset of the item field with this id will be loaded. If id isn't set than an empty object of the table is created.
      */
-    public function __construct(&$database, $inf_id = 0)
+    public function __construct(&$database, $infId = 0)
     {
         // read also data of assigned category
         $this->connectAdditionalTable(TBL_CATEGORIES, 'cat_id', 'inf_cat_id');
 
-        parent::__construct($database, TBL_INVENT_FIELDS, 'inf', $inf_id);
+        parent::__construct($database, TBL_INVENT_FIELDS, 'inf', $infId);
     }
 
     /**
@@ -39,14 +39,15 @@ class TableInventoryField extends TableAccess
         $this->db->startTransaction();
 
         // close gap in sequence
-        $sql = 'UPDATE '.TBL_INVENT_FIELDS.' SET inf_sequence = inf_sequence - 1
-                 WHERE inf_cat_id   = '. $this->getValue('inf_cat_id'). '
-                   AND inf_sequence > '. $this->getValue('inf_sequence');
-        $this->db->query($sql);
+        $sql = 'UPDATE '.TBL_INVENT_FIELDS.'
+                   SET inf_sequence = inf_sequence - 1
+                 WHERE inf_cat_id   = ? -- $this->getValue(\'inf_cat_id\')
+                   AND inf_sequence > ? -- $this->getValue(\'inf_sequence\')';
+        $this->db->queryPrepared($sql, array($this->getValue('inf_cat_id'), $this->getValue('inf_sequence')));
 
         $sql = 'DELETE FROM '.TBL_INVENT_DATA.'
-                    WHERE ind_inf_id = '. $this->getValue('inf_id');
-        $this->db->query($sql);
+                      WHERE ind_inf_id = ? -- $this->getValue(\'inf_id\')';
+        $this->db->queryPrepared($sql, array($this->getValue('inf_id')));
 
         $return = parent::delete();
 
@@ -71,8 +72,8 @@ class TableInventoryField extends TableAccess
         }
         $sql = 'SELECT inf_id
                   FROM '.TBL_INVENT_FIELDS.'
-                 WHERE inf_name_intern = \''.$newNameIntern.'\'';
-        $pdoStatement = $this->db->query($sql);
+                 WHERE inf_name_intern = ? -- $newNameIntern';
+        $pdoStatement = $this->db->queryPrepared($sql, array($newNameIntern));
 
         if($pdoStatement->rowCount() > 0)
         {
@@ -221,25 +222,25 @@ class TableInventoryField extends TableAccess
      */
     public function moveSequence($mode)
     {
+        $mode = admStrToUpper($mode);
+        $sequence = (int) $this->getValue('inf_sequence');
+        $sql = 'UPDATE '.TBL_INVENT_FIELDS.'
+                   SET inf_sequence = ? -- $sequence
+                 WHERE inf_cat_id   = ? -- $this->getValue(\'inf_cat_id\')
+                   AND inf_sequence = ? -- $sequence -/+1';
 
         // die Kategorie wird um eine Nummer gesenkt und wird somit in der Liste weiter nach oben geschoben
-        if(admStrToUpper($mode) === 'UP')
+        if($mode === 'UP')
         {
-            $sql = 'UPDATE '.TBL_INVENT_FIELDS.' SET inf_sequence = '.$this->getValue('inf_sequence').'
-                     WHERE inf_cat_id   = '.$this->getValue('inf_cat_id').'
-                       AND inf_sequence = '.$this->getValue('inf_sequence').' - 1 ';
-            $this->db->query($sql);
-            $this->setValue('inf_sequence', $this->getValue('inf_sequence')-1);
+            $this->db->queryPrepared($sql, array($sequence, $this->getValue('inf_cat_id'), $sequence - 1));
+            $this->setValue('inf_sequence', $sequence - 1);
             $this->save();
         }
         // die Kategorie wird um eine Nummer erhoeht und wird somit in der Liste weiter nach unten geschoben
-        elseif(admStrToUpper($mode) === 'DOWN')
+        elseif($mode === 'DOWN')
         {
-            $sql = 'UPDATE '.TBL_INVENT_FIELDS.' SET inf_sequence = '.$this->getValue('inf_sequence').'
-                     WHERE inf_cat_id   = '.$this->getValue('inf_cat_id').'
-                       AND inf_sequence = '.$this->getValue('inf_sequence').' + 1 ';
-            $this->db->query($sql);
-            $this->setValue('inf_sequence', $this->getValue('inf_sequence')+1);
+            $this->db->queryPrepared($sql, array($sequence, $this->getValue('inf_cat_id'), $sequence + 1));
+            $this->setValue('inf_sequence', $sequence + 1);
             $this->save();
         }
     }
@@ -285,8 +286,8 @@ class TableInventoryField extends TableAccess
             // erst einmal die hoechste Reihenfolgennummer der Kategorie ermitteln
             $sql = 'SELECT COUNT(*) AS count
                       FROM '.TBL_INVENT_FIELDS.'
-                     WHERE inf_cat_id = '.$newValue;
-            $pdoStatement = $this->db->query($sql);
+                     WHERE inf_cat_id = ? -- $newValue';
+            $pdoStatement = $this->db->queryPrepared($sql, array($newValue));
 
             $this->setValue('inf_sequence', $pdoStatement->fetchColumn() + 1);
         }

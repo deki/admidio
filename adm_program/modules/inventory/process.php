@@ -1,12 +1,12 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // only users with the right to edit inventory could use this script
 if (!$gCurrentUser->editInventory())
@@ -58,12 +58,15 @@ switch($postFunction)
             $log['test'] = '100';
 
             $sql = 'DELETE FROM '.TBL_MESSAGES.'
-                     WHERE msg_type = \'CHAT\' AND msg_converation_id = 0 AND msg_part_id <= 50';
+                     WHERE msg_type = \'CHAT\'
+                       AND msg_converation_id = 0
+                       AND msg_part_id <= 50';
             $gDb->query($sql);
 
             $sql = 'UPDATE '.TBL_MESSAGES.'
                        SET msg_part_id = msg_part_id - 50
-                     WHERE msg_type = \'CHAT\' AND msg_converation_id = 0';
+                     WHERE msg_type = \'CHAT\'
+                       AND msg_converation_id = 0';
             $gDb->query($sql);
 
             $postLines -= 50;
@@ -83,10 +86,10 @@ switch($postFunction)
                       FROM '.TBL_MESSAGES.'
                      WHERE msg_type = \'CHAT\'
                        AND msg_converation_id  = 0
-                       AND msg_part_id > '.$postLines.'
+                       AND msg_part_id > ? -- $postLines
                   ORDER BY msg_part_id';
 
-            $statement = $gDb->query($sql);
+            $statement = $gDb->queryPrepared($sql, array($postLines));
             while($row = $statement->fetch())
             {
                 $text[] = '<time>'.date('d.m - H:i', strtotime($row['msg_timestamp'])).'</time><span>'.$row['msg_subject'].'</span>'.$row['msg_message'];
@@ -100,10 +103,10 @@ switch($postFunction)
     case 'send':
         if($postMessage !== "\n")
         {
-            $reg_exUrl = '/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/';
-            if(preg_match($reg_exUrl, $postMessage, $url))
+            $regexUrl = '/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/';
+            if(preg_match($regexUrl, $postMessage, $url))
             {
-                $postMessage = preg_replace($reg_exUrl, '<a href="'.$url[0].'" target="_blank">'.$url[0].'</a>', $postMessage);
+                $postMessage = preg_replace($regexUrl, '<a href="'.$url[0].'" target="_blank">'.$url[0].'</a>', $postMessage);
             }
             fwrite(fopen('chat.txt', 'ab'), '<span>'. $postNickname . '</span>' . $postMessage = str_replace("\n", ' ', $postMessage) . "\n");
         }
@@ -114,14 +117,14 @@ switch($postFunction)
         $msgId = $pdoStatement->fetchColumn() + 1;
 
         $sql = 'INSERT INTO '.TBL_MESSAGES.' (msg_type, msg_converation_id, msg_part_id, msg_subject, msg_usr_id_sender, msg_usr_id_receiver, msg_message, msg_timestamp, msg_read)
-            VALUES (\'CHAT\', \'0\', \''.$msgId.'\', \''.$postNickname.'\', \'\', \'\', \''.$postMessage.'\', CURRENT_TIMESTAMP, \'0\')';
-
-        $gDb->query($sql);
+                     VALUES (\'CHAT\', \'0\', \''.$msgId.'\', \''.$postNickname.'\', \'\', \'\', \''.$postMessage.'\', CURRENT_TIMESTAMP, \'0\')';
+        $gDb->query($sql); // TODO add more params
         break;
 
     case 'delete':
         $sql = 'DELETE FROM '.TBL_MESSAGES.'
-                 WHERE msg_type = \'CHAT\' AND msg_converation_id = 0';
+                 WHERE msg_type = \'CHAT\'
+                   AND msg_converation_id = 0';
         $gDb->query($sql);
         break;
 }

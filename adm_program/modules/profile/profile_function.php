@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * verschiedene Funktionen fuer das Profil
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -21,9 +21,9 @@
  * mem_id  : Id of role membership to should be edited
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
-require_once('roles_functions.php');
+require_once(__DIR__ . '/../../system/common.php');
+require_once(__DIR__ . '/roles_functions.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getUserId   = admFuncVariableIsValid($_GET, 'user_id', 'int');
@@ -104,20 +104,18 @@ elseif($getMode === 3)
 elseif($getMode === 4)
 {
     // reload role memberships
-    $count_show_roles = 0;
-    $roleStatement    = getRolesFromDatabase($getUserId);
-    $count_role       = $roleStatement->rowCount();
-    getRoleMemberships('role_list', $user, $roleStatement, $count_role, true);
+    $roleStatement  = getRolesFromDatabase($getUserId);
+    $countRole      = $roleStatement->rowCount();
+    getRoleMemberships('role_list', $user, $roleStatement, $countRole, true);
 }
 elseif($getMode === 5)
 {
     // reload former role memberships
-    $count_show_roles = 0;
-    $roleStatement    = getFormerRolesFromDatabase($getUserId);
-    $count_role       = $roleStatement->rowCount();
-    getRoleMemberships('former_role_list', $user, $roleStatement, $count_role, true);
+    $roleStatement  = getFormerRolesFromDatabase($getUserId);
+    $countRole      = $roleStatement->rowCount();
+    getRoleMemberships('former_role_list', $user, $roleStatement, $countRole, true);
 
-    if($count_role === 0)
+    if($countRole === 0)
     {
         echo '<script type="text/javascript">$("#profile_former_roles_box").css({ \'display\':\'none\' })</script>';
     }
@@ -129,12 +127,11 @@ elseif($getMode === 5)
 elseif($getMode === 6)
 {
     // reload future role memberships
-    $count_show_roles = 0;
-    $roleStatement    = getFutureRolesFromDatabase($getUserId);
-    $count_role       = $roleStatement->rowCount();
-    getRoleMemberships('future_role_list', $user, $roleStatement, $count_role, true);
+    $roleStatement  = getFutureRolesFromDatabase($getUserId);
+    $countRole      = $roleStatement->rowCount();
+    getRoleMemberships('future_role_list', $user, $roleStatement, $countRole, true);
 
-    if($count_role === 0)
+    if($countRole === 0)
     {
         echo '<script type="text/javascript">$("#profile_future_roles_box").css({ \'display\':\'none\' })</script>';
     }
@@ -228,10 +225,10 @@ elseif ($getMode === 8)
         // Ein Leiter darf nur Rollen zuordnen, bei denen er auch Leiter ist
         $sql = 'SELECT mem_usr_id
                   FROM '.TBL_MEMBERS.'
-                 WHERE mem_rol_id = '.$getRoleId.'
-                   AND mem_begin <= \''.DATE_NOW.'\'
-                   AND mem_end > \''.DATE_NOW.'\'';
-        $pdoStatement = $gDb->query($sql);
+                 WHERE mem_rol_id = ? -- $getRoleId
+                   AND mem_begin <= ? -- DATE_NOW
+                   AND mem_end    > ? -- DATE_NOW';
+        $pdoStatement = $gDb->queryPrepared($sql, array($getRoleId, DATE_NOW, DATE_NOW));
 
         while($memberUserId = $pdoStatement->fetchColumn())
         {

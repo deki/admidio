@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Various functions for profile fields
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -20,8 +20,8 @@
  *
  *****************************************************************************/
 
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getUsfId    = admFuncVariableIsValid($_GET, 'usf_id',   'int');
@@ -43,8 +43,8 @@ if($getUsfId > 0)
     $userField->readDataById($getUsfId);
 
     // check if profile field belongs to actual organization
-    if($userField->getValue('cat_org_id') >  0
-    && $userField->getValue('cat_org_id') != $gCurrentOrganization->getValue('org_id'))
+    if($userField->getValue('cat_org_id') > 0
+    && (int) $userField->getValue('cat_org_id') !== (int) $gCurrentOrganization->getValue('org_id'))
     {
         $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
         // => EXIT
@@ -77,7 +77,7 @@ if($getMode === 1)
         // => EXIT
     }
 
-    if($userField->getValue('usf_system') == 0 && $_POST['usf_cat_id'] == 0)
+    if($userField->getValue('usf_system') == 0 && (int) $_POST['usf_cat_id'] === 0)
     {
         $gMessage->show($gL10n->get('SYS_FIELD_EMPTY', $gL10n->get('SYS_CATEGORY')));
         // => EXIT
@@ -114,10 +114,10 @@ if($getMode === 1)
         // Schauen, ob das Feld bereits existiert
         $sql = 'SELECT COUNT(*) AS count
                   FROM '.TBL_USER_FIELDS.'
-                 WHERE usf_name LIKE \''.$_POST['usf_name'].'\'
-                   AND usf_cat_id  = '.$_POST['usf_cat_id'].'
-                   AND usf_id     <> '.$getUsfId;
-        $pdoStatement = $gDb->query($sql);
+                 WHERE usf_name   = ? -- $_POST[\'usf_name\']
+                   AND usf_cat_id = ? -- $_POST[\'usf_cat_id\']
+                   AND usf_id    <> ? -- $getUsfId';
+        $pdoStatement = $gDb->queryPrepared($sql, array($_POST['usf_name'], $_POST['usf_cat_id'], $getUsfId));
 
         if($pdoStatement->fetchColumn() > 0)
         {
@@ -165,9 +165,9 @@ if($getMode === 1)
     }
 
     // Daten in Datenbank schreiben
-    $return_code = $userField->save();
+    $returnCode = $userField->save();
 
-    if($return_code < 0)
+    if($returnCode < 0)
     {
         $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
         // => EXIT

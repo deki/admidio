@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Redirect to chosen url
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -16,7 +16,7 @@
  *
  *****************************************************************************/
 
-require_once('common.php');
+require_once(__DIR__ . '/common.php');
 
 // Initialize and check the parameters
 $getUrl = admFuncVariableIsValid($_GET, 'url', 'string', array('requireValue' => true));
@@ -35,6 +35,9 @@ $page->addHeader('<meta http-equiv="refresh" content="' . $gPreferences['weblink
 
 // Counter zählt die sekunden bis zur Weiterleitung runter
 $page->addJavascript('
+    /**
+     * @param {bool} init
+     */
     function countDown(init) {
         if (init || --document.getElementById("counter").firstChild.nodeValue > 0) {
             window.setTimeout("countDown()", 1000);

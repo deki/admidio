@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Popup window with information
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -13,7 +13,7 @@
  * inline        - true : message should not be shown in separate window
  ***********************************************************************************************
  */
-require_once('common.php');
+require_once(__DIR__ . '/common.php');
 
 // Initialize and check the parameters
 $getMessageId    = admFuncVariableIsValid($_GET, 'message_id',    'string', array('directOutput' => true, 'requireValue' => true));
@@ -132,12 +132,12 @@ switch ($getMessageId)
                         <td>'.$gL10n->get('LST_EXCLUDE_EXAMPLE_DESC').'</td>
                     </tr>
                     <tr>
-                        <td>'.$gL10n->get('SYS_ADDRESS').'</td>
+                        <td>'.$gL10n->get('SYS_STREET').'</td>
                         <td><strong>'.$gL10n->get('SYS_EMPTY').'</strong></td>
                         <td>'.$gL10n->get('LST_EMPTY_EXAMPLE_DESC').'</td>
                     </tr>
                     <tr>
-                        <td>'.$gL10n->get('SYS_ADDRESS').'</td>
+                        <td>'.$gL10n->get('SYS_STREET').'</td>
                         <td><strong>'.$gL10n->get('SYS_NOT_EMPTY').'</strong></td>
                         <td>'.$gL10n->get('LST_NOT_EMPTY_EXAMPLE_DESC').'</td>
                     </tr>
@@ -165,19 +165,19 @@ switch ($getMessageId)
     default:
         // im Standardfall wird mit der ID der Text aus der Sprachdatei gelesen
         // falls die Textvariable gefuellt ist, pruefen ob dies auch eine ID aus der Sprachdatei ist
-        $msg_var1 = '';
+        $msgVar1 = '';
         if($getMessageVar1 !== '')
         {
             if(strpos($getMessageVar1, '_') === 3)
             {
-                $msg_var1 = $gL10n->get($getMessageVar1);
+                $msgVar1 = $gL10n->get($getMessageVar1);
             }
             else
             {
-                $msg_var1 = $getMessageVar1;
+                $msgVar1 = $getMessageVar1;
             }
         }
-        echo $gL10n->get(strtoupper($getMessageId), $msg_var1);
+        echo $gL10n->get(strtoupper($getMessageId), $msgVar1);
         break;
 }
 

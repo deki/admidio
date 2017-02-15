@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Show item profile
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -13,8 +13,8 @@
  *           an error will be shown.
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getItemId = admFuncVariableIsValid($_GET, 'item_id', 'int');
@@ -43,8 +43,6 @@ function getFieldCode($fieldNameIntern, $item)
 {
     global $gPreferences, $inventory, $gL10n, $gInventoryFields;
     $html      = array('label' => '', 'value' => '');
-    $value     = '';
-    $msg_image = '';
 
     if($gInventoryFields->getProperty($fieldNameIntern, 'inf_hidden') == 1)
     {
@@ -94,12 +92,15 @@ $page->addJavascript('
     var profileJS = new ProfileJS(gRootPath);
     profileJS.deleteRole_ConfirmText  = "'.$gL10n->get('ROL_MEMBERSHIP_DEL', '[rol_name]').'";
     profileJS.deleteFRole_ConfirmText = "'.$gL10n->get('ROL_LINK_MEMBERSHIP_DEL', '[rol_name]').'";
-    profileJS.setBy_Text              = "'.$gL10n->get('SYS_SET_BY').'";
     profileJS.inv_id                  = '.$inventory->getValue('inv_id').';
 
+    /**
+     * @param {object} element
+     */
     function showHideMembershipInformation(element) {
         $("#" + element.attr("id") + "_Content").toggle("fast");
-    }');
+    }
+');
 $page->addJavascript('
     profileJS.init();
     $(".admidio-icon-link-popup").colorbox({
@@ -109,8 +110,12 @@ $page->addJavascript('
             $("#admButtonNo").focus();
         }
     });
-    $(".admMemberInfo").click(function () { showHideMembershipInformation($(this)); });
-    $("#profile_authorizations_box_body").mouseout(function () { profileJS.deleteShowInfo(); });
+    $(".admMemberInfo").click(function() {
+        showHideMembershipInformation($(this));
+    });
+    $("#profile_authorizations_box_body").mouseout(function() {
+        profileJS.deleteShowInfo();
+    });
 
     $(".admidio-form-membership-period").submit(function(event) {
         var id = $(this).attr("id");
@@ -144,7 +149,9 @@ $page->addJavascript('
                 }
             }
         });
-    });', true);
+    });',
+    true
+);
 
 // get module menu
 $profileMenu = $page->getMenu();
@@ -201,15 +208,15 @@ $page->addHtml('
                             {
                                 $sql = 'SELECT CONCAT(room_name, \' (\', room_capacity, \'+\', IFNULL(room_overhang, \'0\'), \')\') AS name
                                           FROM '.TBL_ROOMS.'
-                                         WHERE room_id = ' . $field['value'];
+                                         WHERE room_id = ? -- $field[\'value\']';
                             }
                             else
                             {
                                 $sql = 'SELECT room_name || \' (\' || room_capacity || \'+\' || COALESCE(room_overhang, \'0\') || \')\' AS name
                                           FROM '.TBL_ROOMS.'
-                                         WHERE room_id = ' . $field['value'];
+                                         WHERE room_id = ? -- $field[\'value\']';
                             }
-                            $pdoStatement = $gDb->query($sql);
+                            $pdoStatement = $gDb->queryPrepared($sql, array($field['value']));
 
                             if($pdoStatement->rowCount() > 0)
                             {
@@ -318,6 +325,9 @@ if($category !== '')
 }
 
 // show information about user who creates the recordset and changed it
-$page->addHtml(admFuncShowCreateChangeInfoById($inventory->getValue('inv_usr_id_create'), $inventory->getValue('inv_timestamp_create'), $inventory->getValue('inv_usr_id_change'), $inventory->getValue('inv_timestamp_change')));
+$page->addHtml(admFuncShowCreateChangeInfoById(
+    (int) $inventory->getValue('inv_usr_id_create'), $inventory->getValue('inv_timestamp_create'),
+    (int) $inventory->getValue('inv_usr_id_change'), $inventory->getValue('inv_timestamp_change')
+));
 
 $page->show();

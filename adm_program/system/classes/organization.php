@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -92,8 +92,8 @@ class Organization extends TableAccess
         // read id of system user from database
         $sql = 'SELECT usr_id
                   FROM '.TBL_USERS.'
-                 WHERE usr_login_name LIKE \''.$gL10n->get('SYS_SYSTEM').'\'';
-        $systemUserStatement = $this->db->query($sql);
+                 WHERE usr_login_name = ? -- $gL10n->get(\'SYS_SYSTEM\')';
+        $systemUserStatement = $this->db->queryPrepared($sql, array($gL10n->get('SYS_SYSTEM')));
         $systemUserId = (int) $systemUserStatement->fetchColumn();
 
         // create all systemmail texts and write them into table adm_texts
@@ -121,30 +121,46 @@ class Organization extends TableAccess
         }
 
         // create default category for roles, events and weblinks
-        $sql = 'INSERT INTO '.TBL_CATEGORIES.' (cat_org_id, cat_type, cat_name_intern, cat_name, cat_hidden, cat_default, cat_sequence, cat_usr_id_create, cat_timestamp_create)
-                                        VALUES ('.$orgId.', \'ROL\', \'COMMON\', \'SYS_COMMON\', 0, 1, 1, '.$systemUserId.', \''.DATETIME_NOW.'\')';
-        $this->db->query($sql);
+        $sql = 'INSERT INTO '.TBL_CATEGORIES.'
+                       (cat_org_id, cat_type, cat_name_intern, cat_name, cat_hidden, cat_default, cat_sequence, cat_usr_id_create, cat_timestamp_create)
+                VALUES (?, \'ROL\', \'COMMON\', \'SYS_COMMON\', 0, 1, 1, ?, ?)';
+        $queryParams = array($orgId, $systemUserId, DATETIME_NOW);
+        $this->db->queryPrepared($sql, $queryParams);
         $categoryCommon = $this->db->lastInsertId();
 
-        $sql = 'INSERT INTO '.TBL_CATEGORIES.' (cat_org_id, cat_type, cat_name_intern, cat_name, cat_hidden, cat_default, cat_system, cat_sequence, cat_usr_id_create, cat_timestamp_create)
-                                        VALUES ('.$orgId.', \'ROL\', \'GROUPS\',   \'INS_GROUPS\',   0, 0, 0, 2, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'ROL\', \'COURSES\',  \'INS_COURSES\',  0, 0, 0, 3, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'ROL\', \'TEAMS\',    \'INS_TEAMS\',    0, 0, 0, 4, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'LNK\', \'COMMON\',   \'SYS_COMMON\',   0, 1, 0, 1, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'LNK\', \'INTERN\',   \'INS_INTERN\',   1, 0, 0, 2, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'ANN\', \'COMMON\',   \'SYS_COMMON\',   0, 1, 0, 1, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'ANN\', \'IMPORTANT\',   \'INS_IMPORTANT\',0, 0, 0, 2, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'DAT\', \'COMMON\',   \'SYS_COMMON\',   0, 1, 0, 1, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'DAT\', \'TRAINING\', \'INS_TRAINING\', 0, 0, 0, 2, '.$systemUserId.', \''.DATETIME_NOW.'\')
-                                             , ('.$orgId.', \'DAT\', \'COURSES\',  \'INS_COURSES\',  0, 0, 0, 3, '.$systemUserId.', \''.DATETIME_NOW.'\')';
-        $this->db->query($sql);
+        $sql = 'INSERT INTO '.TBL_CATEGORIES.'
+                       (cat_org_id, cat_type, cat_name_intern, cat_name, cat_hidden, cat_default, cat_system, cat_sequence, cat_usr_id_create, cat_timestamp_create)
+                VALUES (?, \'ROL\', \'GROUPS\',    \'INS_GROUPS\',    0, 0, 0, 2, ?, ?)
+                     , (?, \'ROL\', \'COURSES\',   \'INS_COURSES\',   0, 0, 0, 3, ?, ?)
+                     , (?, \'ROL\', \'TEAMS\',     \'INS_TEAMS\',     0, 0, 0, 4, ?, ?)
+                     , (?, \'ROL\', \'EVENTS\',    \'SYS_EVENTS_CONFIRMATION_OF_PARTICIPATION\', 1, 0, 1, 5, ?, ?)
+                     , (?, \'LNK\', \'COMMON\',    \'SYS_COMMON\',    0, 1, 0, 1, ?, ?)
+                     , (?, \'LNK\', \'INTERN\',    \'INS_INTERN\',    1, 0, 0, 2, ?, ?)
+                     , (?, \'ANN\', \'COMMON\',    \'SYS_COMMON\',    0, 1, 0, 1, ?, ?)
+                     , (?, \'ANN\', \'IMPORTANT\', \'SYS_IMPORTANT\', 0, 0, 0, 2, ?, ?)
+                     , (?, \'DAT\', \'COMMON\',    \'SYS_COMMON\',    0, 1, 0, 1, ?, ?)
+                     , (?, \'DAT\', \'TRAINING\',  \'INS_TRAINING\',  0, 0, 0, 2, ?, ?)
+                     , (?, \'DAT\', \'COURSES\',   \'INS_COURSES\',   0, 0, 0, 3, ?, ?)';
+        $queryParams = array(
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW,
+            $orgId, $systemUserId, DATETIME_NOW
+        );
+        $this->db->queryPrepared($sql, $queryParams);
 
         // insert root folder name for download module
-        $sql = 'INSERT INTO '.TBL_FOLDERS.' (fol_org_id, fol_type, fol_name, fol_path,
-                                             fol_locked, fol_public, fol_usr_id, fol_timestamp)
-                                     VALUES ('.$orgId.', \'DOWNLOAD\', \''.TableFolder::getRootFolderName().'\', \'' . FOLDER_DATA . '\',
-                                             0, 1, '.$systemUserId.', \''.DATETIME_NOW.'\')';
-        $this->db->query($sql);
+        $sql = 'INSERT INTO '.TBL_FOLDERS.'
+                       (fol_org_id, fol_type, fol_name, fol_path, fol_locked, fol_public, fol_usr_id, fol_timestamp)
+                VALUES (?, \'DOWNLOAD\', ?, ?, 0, 1, ?, ?)';
+        $queryParams = array($orgId, TableFolder::getRootFolderName(), FOLDER_DATA, $systemUserId, DATETIME_NOW);
+        $this->db->queryPrepared($sql, $queryParams);
 
         // now create default roles
 
@@ -215,16 +231,17 @@ class Organization extends TableAccess
         $addressList->addColumn(1, $gProfileFields->getProperty('LAST_NAME', 'usf_id'), 'ASC');
         $addressList->addColumn(2, $gProfileFields->getProperty('FIRST_NAME', 'usf_id'), 'ASC');
         $addressList->addColumn(3, $gProfileFields->getProperty('BIRTHDAY', 'usf_id'));
-        $addressList->addColumn(4, $gProfileFields->getProperty('ADDRESS', 'usf_id'));
+        $addressList->addColumn(4, $gProfileFields->getProperty('STREET', 'usf_id'));
         $addressList->addColumn(5, $gProfileFields->getProperty('POSTCODE', 'usf_id'));
         $addressList->addColumn(6, $gProfileFields->getProperty('CITY', 'usf_id'));
         $addressList->save();
 
         // set addresslist to default configuration
-        $sql = 'UPDATE '.TBL_PREFERENCES.' SET prf_value = \''.$addressList->getValue('lst_id').'\'
-                 WHERE prf_org_id = '.$orgId.'
-                   AND prf_name   = \'lists_default_configuration\' ';
-        $this->db->query($sql);
+        $sql = 'UPDATE '.TBL_PREFERENCES.'
+                   SET prf_value  = ? -- $addressList->getValue(\'lst_id\')
+                 WHERE prf_org_id = ? -- $orgId
+                   AND prf_name   = \'lists_default_configuration\'';
+        $this->db->queryPrepared($sql, array($addressList->getValue('lst_id'), $orgId));
 
         $phoneList = new ListConfiguration($this->db);
         $phoneList->setValue('lst_name', $gL10n->get('INS_PHONE_LIST'));
@@ -245,7 +262,7 @@ class Organization extends TableAccess
         $contactList->addColumn(1, $gProfileFields->getProperty('LAST_NAME', 'usf_id'), 'ASC');
         $contactList->addColumn(2, $gProfileFields->getProperty('FIRST_NAME', 'usf_id'), 'ASC');
         $contactList->addColumn(3, $gProfileFields->getProperty('BIRTHDAY', 'usf_id'));
-        $contactList->addColumn(4, $gProfileFields->getProperty('ADDRESS', 'usf_id'));
+        $contactList->addColumn(4, $gProfileFields->getProperty('STREET', 'usf_id'));
         $contactList->addColumn(5, $gProfileFields->getProperty('POSTCODE', 'usf_id'));
         $contactList->addColumn(6, $gProfileFields->getProperty('CITY', 'usf_id'));
         $contactList->addColumn(7, $gProfileFields->getProperty('PHONE', 'usf_id'));
@@ -263,6 +280,24 @@ class Organization extends TableAccess
         $formerList->addColumn(4, 'mem_begin');
         $formerList->addColumn(5, 'mem_end');
         $formerList->save();
+
+        $participantList = new ListConfiguration($this->db);
+        $participantList->setValue('lst_name', $gL10n->get('SYS_PARTICIPANTS'));
+        $participantList->setValue('lst_org_id', $orgId);
+        $participantList->setValue('lst_global', 1);
+        $participantList->addColumn(1, $gProfileFields->getProperty('LAST_NAME', 'usf_id'), 'ASC');
+        $participantList->addColumn(2, $gProfileFields->getProperty('FIRST_NAME', 'usf_id'), 'ASC');
+        $participantList->addColumn(3, 'mem_approved');
+        $participantList->addColumn(4, 'mem_comment');
+        $participantList->addColumn(5, 'mem_count_guests');
+        $participantList->save();
+
+        // set participant list to default configuration in date module settings
+        $sql = 'UPDATE '.TBL_PREFERENCES.'
+                   SET prf_value = ? -- $participantList->getValue(\'lst_id\')
+                 WHERE prf_name   = \'dates_default_list_configuration\'
+                   AND prf_org_id = ? --.$orgId';
+        $this->db->queryPrepared($sql, array($participantList->getValue('lst_id'), $orgId));
     }
 
     /**
@@ -308,27 +343,30 @@ class Organization extends TableAccess
      */
     public function getOrganizationsInRelationship($child = true, $parent = true, $longname = false)
     {
+        $sqlWhere = array();
+        $queryParams = array();
+
+        if ($child)
+        {
+            $sqlWhere[] = 'org_org_id_parent = ?';
+            $queryParams[] = $this->getValue('org_id');
+        }
+        $orgParentId = (int) $this->getValue('org_org_id_parent');
+        if ($parent && $orgParentId > 0)
+        {
+            $sqlWhere[] = 'org_id = ?';
+            $queryParams[] = $orgParentId;
+        }
+
         $sql = 'SELECT org_id, org_longname, org_shortname
                   FROM '.TBL_ORGANIZATIONS.'
-                 WHERE ';
-        if($child)
-        {
-            $sql .= ' org_org_id_parent = '.$this->getValue('org_id');
-        }
-        if($parent && $this->getValue('org_org_id_parent') > 0)
-        {
-            if($child)
-            {
-                $sql .= ' OR ';
-            }
-            $sql .= ' org_id = '.$this->getValue('org_org_id_parent');
-        }
-        $organizationsStatement = $this->db->query($sql);
+                 WHERE '.implode(' OR ', $sqlWhere);
+        $pdoStatement = $this->db->queryPrepared($sql, $queryParams);
 
         $childOrganizations = array();
-        while($row = $organizationsStatement->fetch())
+        while ($row = $pdoStatement->fetch())
         {
-            if($longname)
+            if ($longname)
             {
                 $childOrganizations[$row['org_id']] = $row['org_longname'];
             }
@@ -343,17 +381,21 @@ class Organization extends TableAccess
     /**
      * Reads all preferences of the current organization out of the database table adm_preferences.
      * If the object has read the preferences than the method will return the stored values of the object.
+     * @param bool $update Should the preferences data be updated.
      * @return array Returns an array with all preferences of this organization.
      *               Array key is the column @b prf_name and array value is the column @b prf_value.
      */
-    public function getPreferences()
+    public function getPreferences($update = false)
     {
-        if(count($this->preferences) === 0)
+        if($update || count($this->preferences) === 0)
         {
             $sql = 'SELECT prf_name, prf_value
                       FROM '.TBL_PREFERENCES.'
-                     WHERE prf_org_id = '. $this->getValue('org_id');
-            $preferencesStatement = $this->db->query($sql);
+                     WHERE prf_org_id = ? -- $this->getValue(\'org_id\')';
+            $preferencesStatement = $this->db->queryPrepared($sql, array($this->getValue('org_id')));
+
+            // clear old data
+            $this->preferences = array();
 
             while($prfRow = $preferencesStatement->fetch())
             {
@@ -426,20 +468,24 @@ class Organization extends TableAccess
                 if($update && $value != $this->preferences[$key])
                 {
                     // Pref existiert in DB, aber Wert hat sich geaendert
-                    $sql = 'UPDATE '.TBL_PREFERENCES.' SET prf_value = \''.$value.'\'
-                             WHERE prf_org_id = '.$orgId.'
-                               AND prf_name   = \''.$key.'\' ';
-                    $this->db->query($sql);
+                    $sql = 'UPDATE '.TBL_PREFERENCES.'
+                               SET prf_value  = ? -- $value
+                             WHERE prf_org_id = ? -- $orgId
+                               AND prf_name   = ? -- $key';
+                    $this->db->queryPrepared($sql, array($value, $orgId, $key));
                 }
             }
             else
             {
                 // Parameter existiert noch nicht in DB
                 $sql = 'INSERT INTO '.TBL_PREFERENCES.' (prf_org_id, prf_name, prf_value)
-                             VALUES ('.$orgId.', \''.$key.'\', \''.$value.'\') ';
-                $this->db->query($sql);
+                             VALUES (?, ?, ?) -- $orgId, $key, $value';
+                $this->db->queryPrepared($sql, array($orgId, $key, $value));
             }
         }
+
+        // Update the preferences cache
+        $this->getPreferences(true);
         $this->db->endTransaction();
     }
 

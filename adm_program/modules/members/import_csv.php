@@ -3,13 +3,13 @@
  ***********************************************************************************************
  * Import users from a csv file
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 $_SESSION['import_csv_request'] = $_POST;
 
@@ -173,20 +173,26 @@ for($i = $startRow, $iMax = count($_SESSION['file_lines']); $i < $iMax; ++$i)
         // search for existing user with same name and read user data
         $sql = 'SELECT MAX(usr_id) AS usr_id
                   FROM '.TBL_USERS.'
-            INNER JOIN '.TBL_USER_DATA.' last_name
+            INNER JOIN '.TBL_USER_DATA.' AS last_name
                     ON last_name.usd_usr_id = usr_id
-                   AND last_name.usd_usf_id = '.  $gProfileFields->getProperty('LAST_NAME', 'usf_id'). '
-                   AND last_name.usd_value  = \''. $gDb->escapeString($user->getValue('LAST_NAME', 'database')). '\'
-            INNER JOIN '.TBL_USER_DATA.' first_name
+                   AND last_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'LAST_NAME\', \'usf_id\')
+                   AND last_name.usd_value  = ? -- $user->getValue(\'LAST_NAME\', \'database\')
+            INNER JOIN '.TBL_USER_DATA.' AS first_name
                     ON first_name.usd_usr_id = usr_id
-                   AND first_name.usd_usf_id = '.  $gProfileFields->getProperty('FIRST_NAME', 'usf_id'). '
-                   AND first_name.usd_value  = \''. $gDb->escapeString($user->getValue('FIRST_NAME', 'database')). '\'
-                 WHERE usr_valid = 1 ';
-        $pdoStatement = $gDb->query($sql);
+                   AND first_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'FIRST_NAME\', \'usf_id\')
+                   AND first_name.usd_value  = ? -- $user->getValue(\'FIRST_NAME\', \'database\')
+                 WHERE usr_valid = 1';
+        $queryParams = array(
+            $gProfileFields->getProperty('LAST_NAME', 'usf_id'),
+            $user->getValue('LAST_NAME', 'database'),
+            $gProfileFields->getProperty('FIRST_NAME', 'usf_id'),
+            $user->getValue('FIRST_NAME', 'database')
+        );
+        $pdoStatement = $gDb->queryPrepared($sql, $queryParams);
         $maxUserId = (int) $pdoStatement->fetchColumn();
         if($maxUserId > 0)
         {
-            $duplicate_user = new User($gDb, $gProfileFields, $maxUserId);
+            $duplicateUser = new User($gDb, $gProfileFields, $maxUserId);
         }
 
         if($maxUserId > 0)
@@ -194,40 +200,40 @@ for($i = $startRow, $iMax = count($_SESSION['file_lines']); $i < $iMax; ++$i)
             if($_SESSION['user_import_mode'] == USER_IMPORT_DISPLACE)
             {
                 // delete all user data of profile fields
-                $duplicate_user->deleteUserFieldData();
+                $duplicateUser->deleteUserFieldData();
             }
 
             if($_SESSION['user_import_mode'] == USER_IMPORT_COMPLETE
             || $_SESSION['user_import_mode'] == USER_IMPORT_DISPLACE)
             {
                 // edit data of user, if user already exists
-                foreach($importedFields as $key => $field_name_intern)
+                foreach($importedFields as $key => $fieldNameIntern)
                 {
-                    if($duplicate_user->getValue($field_name_intern) != $user->getValue($field_name_intern))
+                    if($duplicateUser->getValue($fieldNameIntern) != $user->getValue($fieldNameIntern))
                     {
-                        if($gProfileFields->getProperty($field_name_intern, 'usf_type') === 'DATE')
+                        if($gProfileFields->getProperty($fieldNameIntern, 'usf_type') === 'DATE')
                         {
                             // the date must be formated
-                            $duplicate_user->setValue($field_name_intern, $user->getValue($field_name_intern, $gPreferences['system_date']));
+                            $duplicateUser->setValue($fieldNameIntern, $user->getValue($fieldNameIntern, $gPreferences['system_date']));
                         }
-                        elseif($field_name_intern === 'COUNTRY')
+                        elseif($fieldNameIntern === 'COUNTRY')
                         {
                             // we need the iso-code and not the name of the country
-                            $duplicate_user->setValue($field_name_intern, $gL10n->getCountryByName($user->getValue($field_name_intern)));
+                            $duplicateUser->setValue($fieldNameIntern, $gL10n->getCountryByName($user->getValue($fieldNameIntern)));
                         }
-                        elseif($gProfileFields->getProperty($field_name_intern, 'usf_type') === 'DROPDOWN'
-                            || $gProfileFields->getProperty($field_name_intern, 'usf_type') === 'RADIO_BUTTON')
+                        elseif($gProfileFields->getProperty($fieldNameIntern, 'usf_type') === 'DROPDOWN'
+                            || $gProfileFields->getProperty($fieldNameIntern, 'usf_type') === 'RADIO_BUTTON')
                         {
                             // get number and not value of entry
-                            $duplicate_user->setValue($field_name_intern, $user->getValue($field_name_intern, 'database'));
+                            $duplicateUser->setValue($fieldNameIntern, $user->getValue($fieldNameIntern, 'database'));
                         }
                         else
                         {
-                            $duplicate_user->setValue($field_name_intern, $user->getValue($field_name_intern));
+                            $duplicateUser->setValue($fieldNameIntern, $user->getValue($fieldNameIntern));
                         }
                     }
                 }
-                $user = $duplicate_user;
+                $user = $duplicateUser;
             }
         }
 

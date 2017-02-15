@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Overview and maintenance of all categories
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -23,8 +23,8 @@
  *
  ****************************************************************************/
 
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getType  = admFuncVariableIsValid($_GET, 'type',  'string', array('requireValue' => true, 'validValues' => array('ROL', 'LNK', 'ANN', 'USF', 'DAT', 'INF', 'AWA')));
@@ -102,8 +102,12 @@ $page = new HtmlPage($headline);
 $page->enableModal();
 
 $page->addJavascript('
-    function moveCategory(direction, catID) {
-        var actRow = document.getElementById("row_" + catID);
+    /**
+     * @param {string} direction
+     * @param {int}    catId
+     */
+    function moveCategory(direction, catId) {
+        var actRow = document.getElementById("row_" + catId);
         var childs = actRow.parentNode.childNodes;
         var prevNode    = null;
         var nextNode    = null;
@@ -112,14 +116,14 @@ $page->addJavascript('
         var secondSequence = 0;
 
         // erst einmal aktuelle Sequenz und vorherigen/naechsten Knoten ermitteln
-        for (i=0; i < childs.length; i++) {
+        for (var i = 0; i < childs.length; i++) {
             if (childs[i].tagName === "TR") {
                 actRowCount++;
                 if (actSequence > 0 && nextNode === null) {
                     nextNode = childs[i];
                 }
 
-                if (childs[i].id === "row_" + catID) {
+                if (childs[i].id === "row_" + catId) {
                     actSequence = actRowCount;
                 }
 
@@ -144,9 +148,10 @@ $page->addJavascript('
 
         if (secondSequence > 0) {
             // Nun erst mal die neue Position von der gewaehlten Kategorie aktualisieren
-            $.get(gRootPath + "/adm_program/modules/categories/categories_function.php?cat_id=" + catID + "&type='. $getType. '&mode=4&sequence=" + direction);
+            $.get(gRootPath + "/adm_program/modules/categories/categories_function.php?cat_id=" + catId + "&type='. $getType. '&mode=4&sequence=" + direction);
         }
-    }');
+    }
+');
 
 $htmlIconLoginUser = '&nbsp;';
 if($getType !== 'USF')
@@ -180,29 +185,29 @@ $categoriesOverview->addRowHeadingByArray($columnHeading);
 
 $sql = 'SELECT *
           FROM '.TBL_CATEGORIES.'
-         WHERE (  cat_org_id  = '. $gCurrentOrganization->getValue('org_id'). '
+         WHERE (  cat_org_id  = ? -- $gCurrentOrganization->getValue(\'org_id\')
                OR cat_org_id IS NULL )
-           AND cat_type   = \''.$getType.'\'
+           AND cat_type = ? -- $getType
       ORDER BY cat_sequence ASC';
 
-$categoryStatement = $gDb->query($sql);
+$categoryStatement = $gDb->queryPrepared($sql, array($gCurrentOrganization->getValue('org_id'), $getType));
 $flagTbodyWritten = false;
 $flagTbodyAllOrgasWritten = false;
 
 $category = new TableCategory($gDb);
 
 // Get data
-while($cat_row = $categoryStatement->fetch())
+while($catRow = $categoryStatement->fetch())
 {
     $category->clear();
-    $category->setArray($cat_row);
+    $category->setArray($catRow);
 
     if($category->getValue('cat_system') == 1 && $getType === 'USF')
     {
         // da bei USF die Kategorie Stammdaten nicht verschoben werden darf, muss hier ein bischen herumgewurschtelt werden
         $categoriesOverview->addTableBody('id', 'cat_'.$category->getValue('cat_id'));
     }
-    elseif($category->getValue('cat_org_id') == 0 && $getType === 'USF')
+    elseif((int) $category->getValue('cat_org_id') === 0 && $getType === 'USF')
     {
         // Kategorien über alle Organisationen kommen immer zuerst
         if(!$flagTbodyAllOrgasWritten)

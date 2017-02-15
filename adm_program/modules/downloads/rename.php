@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Rename a file or a folder of download module
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -13,8 +13,8 @@
  * file_id      :  Id of the file that should be renamed
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getFolderId = admFuncVariableIsValid($_GET, 'folder_id', 'int');
@@ -30,10 +30,9 @@ else
     $headline = $gL10n->get('DOW_EDIT_FOLDER');
 }
 
-// pruefen ob das Modul ueberhaupt aktiviert ist
+// check if the module is enabled and disallow access if it's disabled
 if ($gPreferences['enable_download_module'] != 1)
 {
-    // das Modul ist deaktiviert
     $gMessage->show($gL10n->get('SYS_MODULE_DISABLED'));
     // => EXIT
 }
@@ -42,13 +41,13 @@ $gNavigation->addUrl(CURRENT_URL, $headline);
 
 if(isset($_SESSION['download_request']))
 {
-    $form_values = strStripSlashesDeep($_SESSION['download_request']);
+    $formValues = strStripSlashesDeep($_SESSION['download_request']);
     unset($_SESSION['download_request']);
 }
 else
 {
-    $form_values['new_name'] = null;
-    $form_values['new_description'] = null;
+    $formValues['new_name'] = null;
+    $formValues['new_description'] = null;
 }
 
 // check the rights of the current folder
@@ -61,8 +60,10 @@ if (!$targetFolder->hasUploadRight())
     // => EXIT
 }
 
-$originalName = '';
-$fileType     = '';
+$originalName    = '';
+$fileType        = '';
+$createUserId    = 0;
+$createTimestamp = '';
 
 try
 {
@@ -72,17 +73,19 @@ try
         $file = new TableFile($gDb);
         $file->getFileForDownload($getFileId);
 
-        $originalName = pathinfo($file->getValue('fil_name'), PATHINFO_FILENAME);
-        $fileType     = pathinfo($file->getValue('fil_name'), PATHINFO_EXTENSION);
+        $originalName    = pathinfo($file->getValue('fil_name'), PATHINFO_FILENAME);
+        $fileType        = pathinfo($file->getValue('fil_name'), PATHINFO_EXTENSION);
+        $createUserId    = $file->getValue('fil_usr_id');
+        $createTimestamp = $file->getValue('fil_timestamp');
 
-        if ($form_values['new_name'] === null)
+        if ($formValues['new_name'] === null)
         {
-            $form_values['new_name'] = $originalName;
+            $formValues['new_name'] = $originalName;
         }
 
-        if ($form_values['new_description'] === null)
+        if ($formValues['new_description'] === null)
         {
-            $form_values['new_description'] = $file->getValue('fil_description');
+            $formValues['new_description'] = $file->getValue('fil_description');
         }
 
     }
@@ -92,22 +95,25 @@ try
         $folder = new TableFolder($gDb);
         $folder->getFolderForDownload($getFolderId);
 
-        $originalName = $folder->getValue('fol_name');
+        $originalName    = $folder->getValue('fol_name');
+        $createUserId    = $folder->getValue('fol_usr_id');
+        $createTimestamp = $folder->getValue('fol_timestamp');
 
-        if ($form_values['new_name'] == null)
+        if ($formValues['new_name'] == null)
         {
-            $form_values['new_name'] = $originalName;
+            $formValues['new_name'] = $originalName;
         }
 
-        if ($form_values['new_description'] == null)
+        if ($formValues['new_description'] == null)
         {
-            $form_values['new_description'] = $folder->getValue('fol_description');
+            $formValues['new_description'] = $folder->getValue('fol_description');
         }
     }
 }
 catch(AdmException $e)
 {
     $e->showHtml();
+    // => EXIT
 }
 
 // create html page object
@@ -124,9 +130,10 @@ if ($getFileId)
     $form->addInput('file_type', $gL10n->get('DOW_FILE_TYPE'), $fileType, array('property' => FIELD_DISABLED, 'class' => 'form-control-small'));
 }
 $form->addInput('previous_name', $gL10n->get('DOW_PREVIOUS_NAME'), $originalName, array('property' => FIELD_DISABLED));
-$form->addInput('new_name', $gL10n->get('DOW_NEW_NAME'), $form_values['new_name'], array('maxLength' => 255, 'property' => FIELD_REQUIRED, 'helpTextIdLabel' => 'DOW_FILE_NAME_RULES'));
-$form->addMultilineTextInput('new_description', $gL10n->get('SYS_DESCRIPTION'), $form_values['new_description'], 4, array('maxLength' => 255));
+$form->addInput('new_name', $gL10n->get('DOW_NEW_NAME'), $formValues['new_name'], array('maxLength' => 255, 'property' => FIELD_REQUIRED, 'helpTextIdLabel' => 'DOW_FILE_NAME_RULES'));
+$form->addMultilineTextInput('new_description', $gL10n->get('SYS_DESCRIPTION'), $formValues['new_description'], 4, array('maxLength' => 255));
 $form->addSubmitButton('btn_rename', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png', 'class' => ' col-sm-offset-3'));
+$form->addHtml(admFuncShowCreateChangeInfoById($createUserId, $createTimestamp));
 
 $page->addHtml($form->show(false));
 $page->show();

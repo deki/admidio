@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Funktionen zum Verwalten der Rollenmitgliedschaft im Profil
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -28,15 +28,15 @@ function getRolesFromDatabase($userId)
                 ON rol_id = mem_rol_id
         INNER JOIN '.TBL_CATEGORIES.'
                 ON cat_id = rol_cat_id
-             WHERE mem_usr_id  = '.$userId.'
-               AND mem_begin  <= \''.DATE_NOW.'\'
-               AND mem_end    >= \''.DATE_NOW.'\'
+             WHERE mem_usr_id  = ? -- $userId
+               AND mem_begin  <= ? -- DATE_NOW
+               AND mem_end    >= ? -- DATE_NOW
                AND rol_valid   = 1
-               AND rol_visible = 1
-               AND (  cat_org_id  = '. $gCurrentOrganization->getValue('org_id'). '
+               AND cat_name_intern <> \'EVENTS\'
+               AND (  cat_org_id  = ? -- $gCurrentOrganization->getValue(\'org_id\')
                    OR cat_org_id IS NULL )
           ORDER BY cat_org_id, cat_sequence, rol_name';
-    return $gDb->query($sql);
+    return $gDb->queryPrepared($sql, array($userId, DATE_NOW, DATE_NOW, $gCurrentOrganization->getValue('org_id')));
 }
 
 /**
@@ -54,14 +54,14 @@ function getFutureRolesFromDatabase($userId)
                 ON rol_id = mem_rol_id
         INNER JOIN '.TBL_CATEGORIES.'
                 ON cat_id = rol_cat_id
-             WHERE mem_usr_id  = '.$userId.'
-               AND mem_begin   > \''.DATE_NOW.'\'
+             WHERE mem_usr_id  = ? -- $userId
+               AND mem_begin   > ? -- DATE_NOW
                AND rol_valid   = 1
-               AND rol_visible = 1
-               AND (  cat_org_id  = '. $gCurrentOrganization->getValue('org_id'). '
+               AND cat_name_intern <> \'EVENTS\'
+               AND (  cat_org_id  = ? -- $gCurrentOrganization->getValue(\'org_id\')
                    OR cat_org_id IS NULL )
           ORDER BY cat_org_id, cat_sequence, rol_name';
-    return $gDb->query($sql);
+    return $gDb->queryPrepared($sql, array($userId, DATE_NOW, $gCurrentOrganization->getValue('org_id')));
 }
 
 /**
@@ -79,27 +79,27 @@ function getFormerRolesFromDatabase($userId)
                 ON rol_id = mem_rol_id
         INNER JOIN '.TBL_CATEGORIES.'
                 ON cat_id = rol_cat_id
-             WHERE mem_usr_id  = '.$userId.'
-               AND mem_end     < \''.DATE_NOW.'\'
+             WHERE mem_usr_id  = ? -- $userId
+               AND mem_end     < ? -- DATE_NOW
                AND rol_valid   = 1
-               AND rol_visible = 1
-               AND (  cat_org_id  = '. $gCurrentOrganization->getValue('org_id'). '
+               AND cat_name_intern <> \'EVENTS\'
+               AND (  cat_org_id  = ? -- $gCurrentOrganization->getValue(\'org_id\')
                    OR cat_org_id IS NULL )
           ORDER BY cat_org_id, cat_sequence, rol_name';
-    return $gDb->query($sql);
+    return $gDb->queryPrepared($sql, array($userId, DATE_NOW, $gCurrentOrganization->getValue('org_id')));
 }
 
 /**
  * @param string        $htmlListId
  * @param \User         $user
  * @param \PDOStatement $roleStatement
- * @param int           $count_role
+ * @param int           $countRole
  * @param bool          $directOutput
  * @return string
  */
-function getRoleMemberships($htmlListId, User $user, PDOStatement $roleStatement, $count_role, $directOutput)
+function getRoleMemberships($htmlListId, User $user, PDOStatement $roleStatement, $countRole, $directOutput)
 {
-    global $gDb, $gL10n, $gCurrentUser, $gPreferences, $gProfileFields;
+    global $gDb, $gL10n, $gCurrentUser, $gPreferences;
 
     $countShowRoles = 0;
     $member = new TableMembers($gDb);
@@ -108,7 +108,7 @@ function getRoleMemberships($htmlListId, User $user, PDOStatement $roleStatement
 
     while($row = $roleStatement->fetch())
     {
-        if($gCurrentUser->hasRightViewRole($row['mem_rol_id']) && $row['rol_visible'] == 1)
+        if($gCurrentUser->hasRightViewRole($row['mem_rol_id']))
         {
             $futureMembership = false;
             $showRoleEndDate  = false;
@@ -137,6 +137,8 @@ function getRoleMemberships($htmlListId, User $user, PDOStatement $roleStatement
                 $futureMembership = true;
                 $deleteMode = 'pro_future';
             }
+
+            $memberId = (int) $member->getValue('mem_id');
 
             // create list entry for one role
             $roleMemHTML .= '
@@ -178,13 +180,13 @@ function getRoleMemberships($htmlListId, User $user, PDOStatement $roleStatement
                             if($role->allowedToAssignMembers($gCurrentUser))
                             {
                                 // You are not allowed to delete your own administrator membership, other roles could be deleted
-                                if (($role->getValue('rol_administrator') == 1 && $gCurrentUser->getValue('usr_id') != $user->getValue('usr_id'))
+                                if (($role->getValue('rol_administrator') == 1 && (int) $gCurrentUser->getValue('usr_id') !== (int) $user->getValue('usr_id'))
                                 || ($role->getValue('rol_administrator') == 0))
                                 {
                                     $roleMemHTML .= '
                                     <a class="admidio-icon-link" data-toggle="modal" data-target="#admidio_modal"
                                         href="'.ADMIDIO_URL.'/adm_program/system/popup_message.php?type='.$deleteMode.'&amp;element_id=role_'.
-                                        $role->getValue('rol_id'). '&amp;database_id='.$member->getValue('mem_id').'&amp;name='.urlencode($role->getValue('rol_name')).'"><img
+                                        $role->getValue('rol_id'). '&amp;database_id='.$memberId.'&amp;name='.urlencode($role->getValue('rol_name')).'"><img
                                         src="'. THEME_URL. '/icons/delete.png" alt="'.$gL10n->get('PRO_CANCEL_MEMBERSHIP').'" title="'.$gL10n->get('PRO_CANCEL_MEMBERSHIP').'" /></a>';
                                 }
                                 else
@@ -196,7 +198,7 @@ function getRoleMemberships($htmlListId, User $user, PDOStatement $roleStatement
                                 // do not edit administrator role
                                 if ($row['rol_administrator'] == 0)
                                 {
-                                    $roleMemHTML .= '<a class="admidio-icon-link" style="cursor:pointer;" onclick="profileJS.toggleDetailsOn('.$member->getValue('mem_id').')"><img
+                                    $roleMemHTML .= '<a class="admidio-icon-link" style="cursor:pointer;" onclick="profileJS.toggleDetailsOn('.$memberId.')"><img
                                         src="'.THEME_URL.'/icons/edit.png" alt="'.$gL10n->get('PRO_CHANGE_DATE').'" title="'.$gL10n->get('PRO_CHANGE_DATE').'" /></a>';
                                 }
                                 else
@@ -209,20 +211,23 @@ function getRoleMemberships($htmlListId, User $user, PDOStatement $roleStatement
                             // only show info if system setting is activated
                             if($gPreferences['system_show_create_edit'] > 0)
                             {
-                                $roleMemHTML .= '<a class="admidio-icon-link admMemberInfo" id="member_info_'.$member->getValue('mem_id').'" href="javascript:void(0)"><img src="'.THEME_URL.'/icons/info.png" alt="'.$gL10n->get('SYS_INFORMATIONS').'" title="'.$gL10n->get('SYS_INFORMATIONS').'"/></a>';
+                                $roleMemHTML .= '<a class="admidio-icon-link admMemberInfo" id="member_info_'.$memberId.'" href="javascript:void(0)"><img src="'.THEME_URL.'/icons/info.png" alt="'.$gL10n->get('SYS_INFORMATIONS').'" title="'.$gL10n->get('SYS_INFORMATIONS').'"/></a>';
                             }
                         $roleMemHTML .= '</span>
                     </li>
-                    <li class="list-group-item" id="membership_period_'.$member->getValue('mem_id').'" style="visibility: hidden; display: none;"><div class="collapse navbar-collapse">';
-                        $form = new HtmlForm('membership_period_form_'.$member->getValue('mem_id'), ADMIDIO_URL.FOLDER_MODULES.'/profile/profile_function.php?mode=7&amp;user_id='.$user->getValue('usr_id').'&amp;mem_id='.$row['mem_id'], null, array('type' => 'navbar', 'setFocus' => false, 'class' => 'admidio-form-membership-period'));
-                        $form->addInput('membership_start_date_'.$member->getValue('mem_id'), $gL10n->get('SYS_START'), $member->getValue('mem_begin', $gPreferences['system_date']), array('type' => 'date', 'maxLength' => 10));
-                        $form->addInput('membership_end_date_'.$member->getValue('mem_id'), $gL10n->get('SYS_END'), $member->getValue('mem_end', $gPreferences['system_date']), array('type' => 'date', 'maxLength' => 10));
-                        $form->addButton('btn_send_'.$member->getValue('mem_id'), $gL10n->get('SYS_OK'), array('class' => 'button-membership-period-form', 'data-admidio' => $member->getValue('mem_id')));
+                    <li class="list-group-item" id="membership_period_'.$memberId.'" style="visibility: hidden; display: none;"><div class="collapse navbar-collapse">';
+                        $form = new HtmlForm('membership_period_form_'.$memberId, ADMIDIO_URL.FOLDER_MODULES.'/profile/profile_function.php?mode=7&amp;user_id='.$user->getValue('usr_id').'&amp;mem_id='.$row['mem_id'], null, array('type' => 'navbar', 'setFocus' => false, 'class' => 'admidio-form-membership-period'));
+                        $form->addInput('membership_start_date_'.$memberId, $gL10n->get('SYS_START'), $member->getValue('mem_begin', $gPreferences['system_date']), array('type' => 'date', 'maxLength' => 10));
+                        $form->addInput('membership_end_date_'.$memberId, $gL10n->get('SYS_END'), $member->getValue('mem_end', $gPreferences['system_date']), array('type' => 'date', 'maxLength' => 10));
+                        $form->addButton('btn_send_'.$memberId, $gL10n->get('SYS_OK'), array('class' => 'button-membership-period-form', 'data-admidio' => $memberId));
                         $roleMemHTML .= $form->show(false);
                     $roleMemHTML .= '</div></li>
-                    <li class="list-group-item" id="member_info_'.$member->getValue('mem_id').'_Content" style="display: none;">';
+                    <li class="list-group-item" id="member_info_'.$memberId.'_Content" style="display: none;">';
                         // show information about user who creates the recordset and changed it
-                        $roleMemHTML .= admFuncShowCreateChangeInfoById($member->getValue('mem_usr_id_create'), $member->getValue('mem_timestamp_create'), $member->getValue('mem_usr_id_change'), $member->getValue('mem_timestamp_change')).'
+                        $roleMemHTML .= admFuncShowCreateChangeInfoById(
+                            (int) $member->getValue('mem_usr_id_create'), $member->getValue('mem_timestamp_create'),
+                            (int) $member->getValue('mem_usr_id_change'), $member->getValue('mem_timestamp_change')
+                        ).'
                     </li>
                 </ul>
             </li>';

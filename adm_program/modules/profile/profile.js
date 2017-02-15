@@ -2,7 +2,7 @@
  ***********************************************************************************************
  * Javascript functions for profile module
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -15,7 +15,6 @@ function ProfileJS(gRootPath) {
     this.userId                  = 0;
     this.deleteRole_ConfirmText  = "";
     this.deleteFRole_ConfirmText = "";
-    this.setBy_Text              = "";
     this.errorID                 = 0;
 
     this.reloadRoleMemberships = function() {
@@ -24,7 +23,7 @@ function ProfileJS(gRootPath) {
             dataType: "html",
             success: function(responseText) {
                 $("#profile_roles_box_body").html(responseText);
-                $(".admMemberInfo").click(function () {
+                $(".admMemberInfo").click(function() {
                     showHideMembershipInformation($(this));
                 });
                 formSubmitEvent();
@@ -71,15 +70,10 @@ function ProfileJS(gRootPath) {
         return "leader-" + number;
     }
 
-    this.showInfo = function(name) {
-        $("#profile_authorization_content:first-child").text(this.setBy_Text + ": " + name);
-    };
-    this.deleteShowInfo = function() {
-        $("#profile_authorization_content:first-child").text(this.setBy_Text + ": ");
-    };
     this.toggleDetailsOn = function(memberId) {
         $("#membership_period_" + memberId).css({"visibility": "visible", "display": "block"});
     };
+
     this.toggleDetailsOff = function(memberId) {
         $("#membership_period_" + memberId).css({"visibility": "hidden", "display": "none"});
     };

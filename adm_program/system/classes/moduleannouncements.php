@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -81,8 +81,6 @@
  */
 class ModuleAnnouncements extends Modules
 {
-    protected $getConditions;   ///< String with SQL condition
-
     /**
      * Get number of available announcements
      * @Return int Returns the total count and push it in the array
@@ -93,12 +91,13 @@ class ModuleAnnouncements extends Modules
 
         $sql = 'SELECT COUNT(*) AS count
                   FROM '.TBL_ANNOUNCEMENTS.'
-                  JOIN '.TBL_CATEGORIES.' ON cat_id = ann_cat_id
-                 WHERE (  cat_org_id = '. $gCurrentOrganization->getValue('org_id'). '
+            INNER JOIN '.TBL_CATEGORIES.'
+                    ON cat_id = ann_cat_id
+                 WHERE (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                        OR (   ann_global = 1
                           AND cat_org_id IN ('.$gCurrentOrganization->getFamilySQL().') ))
-                       '.$this->getConditions;
-        $pdoStatement = $gDb->query($sql);
+                       '.$this->getSqlConditions();
+        $pdoStatement = $gDb->queryPrepared($sql, array($gCurrentOrganization->getValue('org_id'))); // TODO add more params
 
         return (int) $pdoStatement->fetchColumn();
     }
@@ -113,22 +112,6 @@ class ModuleAnnouncements extends Modules
     {
         global $gCurrentOrganization, $gPreferences, $gProfileFields, $gDb;
 
-        // Bedingungen
-        if ($this->getParameter('id') > 0)
-        {
-            $this->getConditions = 'AND ann_id = '.$this->getParameter('id');
-        }
-        if($this->getParameter('cat_id') > 0)
-        {
-            $this->getConditions = ' AND cat_id = '. $this->getParameter('cat_id');
-        }
-
-        // Search announcements to date
-        elseif ($this->getParameter('dateStartFormatEnglish'))
-        {
-            $this->getConditions = 'AND ann_timestamp_create BETWEEN \''.$this->getParameter('dateStartFormatEnglish').' 00:00:00\' AND \''.$this->getParameter('dateEndFormatEnglish').' 23:59:59\'';
-        }
-
         if ($gPreferences['system_show_create_edit'] == 1)
         {
             // show firstname and lastname of create and last change user
@@ -136,16 +119,16 @@ class ModuleAnnouncements extends Modules
                 cre_firstname.usd_value || \' \' || cre_surname.usd_value AS create_name,
                 cha_firstname.usd_value || \' \' || cha_surname.usd_value AS change_name ';
             $additionalTables = '
-                LEFT JOIN '.TBL_USER_DATA.' cre_surname
+                LEFT JOIN '.TBL_USER_DATA.' AS cre_surname
                        ON cre_surname.usd_usr_id = ann_usr_id_create
                       AND cre_surname.usd_usf_id = '.$gProfileFields->getProperty('LAST_NAME', 'usf_id').'
-                LEFT JOIN '.TBL_USER_DATA.' cre_firstname
+                LEFT JOIN '.TBL_USER_DATA.' AS cre_firstname
                        ON cre_firstname.usd_usr_id = ann_usr_id_create
                       AND cre_firstname.usd_usf_id = '.$gProfileFields->getProperty('FIRST_NAME', 'usf_id').'
-                LEFT JOIN '.TBL_USER_DATA.' cha_surname
+                LEFT JOIN '.TBL_USER_DATA.' AS cha_surname
                        ON cha_surname.usd_usr_id = ann_usr_id_change
                       AND cha_surname.usd_usf_id = '.$gProfileFields->getProperty('LAST_NAME', 'usf_id').'
-                LEFT JOIN '.TBL_USER_DATA.' cha_firstname
+                LEFT JOIN '.TBL_USER_DATA.' AS cha_firstname
                        ON cha_firstname.usd_usr_id = ann_usr_id_change
                       AND cha_firstname.usd_usf_id = '.$gProfileFields->getProperty('FIRST_NAME', 'usf_id');
         }
@@ -156,21 +139,22 @@ class ModuleAnnouncements extends Modules
                 cre_username.usr_login_name AS create_name,
                 cha_username.usr_login_name AS change_name ';
             $additionalTables = '
-                LEFT JOIN '.TBL_USERS.' cre_username
+                LEFT JOIN '.TBL_USERS.' AS cre_username
                        ON cre_username.usr_id = ann_usr_id_create
-                LEFT JOIN '.TBL_USERS.' cha_username
+                LEFT JOIN '.TBL_USERS.' AS cha_username
                        ON cha_username.usr_id = ann_usr_id_change ';
         }
 
         // read announcements from database
         $sql = 'SELECT cat.*, ann.*, '.$additionalFields.'
-                  FROM '.TBL_ANNOUNCEMENTS.' ann
-                  JOIN '.TBL_CATEGORIES.' cat ON cat_id = ann_cat_id
+                  FROM '.TBL_ANNOUNCEMENTS.' AS ann
+            INNER JOIN '.TBL_CATEGORIES.' AS cat
+                    ON cat_id = ann_cat_id
                        '.$additionalTables.'
                  WHERE (  cat_org_id = '. $gCurrentOrganization->getValue('org_id'). '
                        OR (   ann_global = 1
                           AND cat_org_id IN ('.$gCurrentOrganization->getFamilySQL().') ))
-                       '.$this->getConditions.'
+                       '.$this->getSqlConditions().'
               ORDER BY ann_timestamp_create DESC';
 
         // Check if limit was set
@@ -183,7 +167,7 @@ class ModuleAnnouncements extends Modules
             $sql .= ' OFFSET '.$startElement;
         }
 
-        $announcementsStatement = $gDb->query($sql);
+        $announcementsStatement = $gDb->query($sql); // TODO add more params
 
         // array for results
         return array(
@@ -193,6 +177,48 @@ class ModuleAnnouncements extends Modules
             'totalCount' => $this->getDataSetCount(),
             'parameter'  => $this->getParameters()
         );
+    }
+
+    /**
+     * Prepare SQL Statement.
+     * @return string
+     */
+    private function getSqlConditions()
+    {
+        global $gValidLogin, $gCurrentUser;
+
+        $sqlConditions = '';
+
+        // if user isn't logged in, then don't show hidden categories
+        if (!$gValidLogin)
+        {
+            $sqlConditions .= ' AND cat_hidden = 0 ';
+        }
+
+        $id = $this->getParameter('id');
+        // In case ID was permitted and user has rights
+        if ($id > 0)
+        {
+            $sqlConditions .= ' AND ann_id = ' . $this->getParameter('id');
+        }
+        // ...otherwise get all additional announcements for a group
+        else
+        {
+            // show all events from category
+            if ($this->getParameter('cat_id') > 0)
+            {
+                // show all events from category
+                $sqlConditions .= ' AND cat_id = ' . $this->getParameter('cat_id');
+            }
+
+            // Search announcements to date
+            if ($this->getParameter('dateStartFormatEnglish'))
+            {
+                $sqlConditions = 'AND ann_timestamp_create BETWEEN \''.$this->getParameter('dateStartFormatEnglish').' 00:00:00\' AND \''.$this->getParameter('dateEndFormatEnglish').' 23:59:59\'';
+            }
+        }
+
+        return $sqlConditions;
     }
 
     /**

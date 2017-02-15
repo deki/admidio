@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Class manages the list configuration
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -178,6 +178,7 @@ class ListConfiguration extends TableLists
      *                             2 - Active and former members of a role
      * @param string $startDate
      * @param string $endDate
+     * @param int[]  $relationtypeIds
      * @return string
      */
     public function getSQL(array $roleIds, $memberStatus = 0, $startDate = null, $endDate = null, array $relationtypeIds = array())
@@ -353,7 +354,7 @@ class ListConfiguration extends TableLists
         $sqlUserJoin = 'INNER JOIN '.TBL_USERS.'
                                 ON usr_id = mem_usr_id';
         $sqlRelationtypeWhere = '';
-        if ($relationtypeIds)
+        if (count($relationtypeIds) > 0)
         {
             $sqlUserJoin = 'INNER JOIN '.TBL_USER_RELATIONS.'
                                     ON ure_usr_id1 = mem_usr_id
@@ -394,9 +395,9 @@ class ListConfiguration extends TableLists
     {
         $sql = 'SELECT *
                   FROM '.TBL_LIST_COLUMNS.'
-                 WHERE lsc_lst_id = '.$this->getValue('lst_id').'
+                 WHERE lsc_lst_id = ? -- $this->getValue(\'lst_id\')
               ORDER BY lsc_number ASC';
-        $lscStatement = $this->db->query($sql);
+        $lscStatement = $this->db->queryPrepared($sql, array($this->getValue('lst_id')));
 
         while($lscRow = $lscStatement->fetch())
         {
@@ -447,7 +448,7 @@ class ListConfiguration extends TableLists
         // save columns
         foreach($this->columns as $number => $listColumn)
         {
-            if($listColumn->getValue('lsc_lst_id') == 0)
+            if((int) $listColumn->getValue('lsc_lst_id') === 0)
             {
                 $listColumn->setValue('lsc_lst_id', $this->getValue('lst_id'));
             }

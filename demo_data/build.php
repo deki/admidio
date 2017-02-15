@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * This script imports a bunch of demo data into a Admidio database
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -17,23 +17,23 @@
 if(is_file('../adm_my_files/config.php'))
 {
     // search in path of version 3.x
-    require_once('../adm_my_files/config.php');
+    require_once(__DIR__ . '/../adm_my_files/config.php');
 }
 elseif(is_file('../config.php'))
 {
     // search in path of version 1.x and 2.x
-    require_once('../config.php');
+    require_once(__DIR__ . '/../config.php');
 }
 else
 {
     exit('<p style="color: #cc0000;">Error: Config file not found!</p>');
 }
 
-require_once('../adm_program/system/init_globals.php');
-require_once('../adm_program/system/constants.php');
-require_once('../adm_program/system/function.php');
-require_once('../adm_program/system/string.php');
-require_once('../adm_program/system/logging.php');
+require_once(__DIR__ . '/../adm_program/system/init_globals.php');
+require_once(__DIR__ . '/../adm_program/system/constants.php');
+require_once(__DIR__ . '/../adm_program/system/function.php');
+require_once(__DIR__ . '/../adm_program/system/string.php');
+require_once(__DIR__ . '/../adm_program/system/logging.php');
 
 // import of demo data must be enabled in config.php
 if(!isset($gImportDemoData) || $gImportDemoData != 1)
@@ -82,7 +82,7 @@ function getBacktrace()
             // Path...
             if (!empty($trace['args'][0]))
             {
-                $argument = htmlentities($trace['args'][0]);
+                $argument = noHTML($trace['args'][0]);
                 $argument = str_replace(array(ADMIDIO_PATH, '\\'), array('', '/'), $argument);
                 $argument = substr($argument, 1);
                 $args[] = '\''.$argument.'\'';
@@ -93,10 +93,10 @@ function getBacktrace()
         $trace['type']  = array_key_exists('type',  $trace) ? $trace['type'] : '';
 
         $output .= '<br />';
-        $output .= '<strong>FILE:</strong> '.htmlentities($trace['file']).'<br />';
+        $output .= '<strong>FILE:</strong> '.noHTML($trace['file']).'<br />';
         $output .= '<strong>LINE:</strong> '.((!empty($trace['line'])) ? $trace['line'] : '').'<br />';
 
-        $output .= '<strong>CALL:</strong> '.htmlentities($trace['class'].$trace['type'].$trace['function']).
+        $output .= '<strong>CALL:</strong> '.noHTML($trace['class'].$trace['type'].$trace['function']).
             '('.(count($args) ? implode(', ', $args) : '').')<br />';
     }
     $output .= '</div>';
@@ -133,11 +133,11 @@ $srcFolder = ADMIDIO_PATH . '/demo_data/adm_my_files';
 $newFolder = ADMIDIO_PATH . FOLDER_DATA;
 
 $myFilesFolder = new Folder($srcFolder);
-$b_return = $myFilesFolder->delete($newFolder.'/backup');
-$b_return = $myFilesFolder->delete($newFolder.'/download');
-$b_return = $myFilesFolder->delete($newFolder.'/photos');
-$b_return = $myFilesFolder->copy($newFolder);
-if(!$b_return)
+$myFilesFolder->delete($newFolder.'/backup');
+$myFilesFolder->delete($newFolder.'/download');
+$myFilesFolder->delete($newFolder.'/photos');
+$returnValue = $myFilesFolder->copy($newFolder);
+if(!$returnValue)
 {
     echo '<p style="color: #cc0000;">Folder <strong>adm_my_files</strong> is not writable.<br />
     No files could be copied to that folder.</p>';
@@ -158,8 +158,7 @@ catch(AdmException $e)
 if($gDbType === 'mysql')
 {
     // disable foreign key checks for mysql, so tables can easily deleted
-    $sql = 'SET foreign_key_checks = 0 ';
-    $db->query($sql);
+    $db->query('SET foreign_key_checks = 0');
 }
 
 /**
@@ -222,12 +221,12 @@ readAndExecuteSQLFromFile('data.sql', $db);
 
 // manipulate some dates so that it's suitable to the current date
 echo 'Edit data of database ...<br />';
-include_once('data_edit.php');
+include_once(__DIR__ . '/data_edit.php');
 
 // in postgresql all sequences must get a new start value because our inserts have given ids
 if($gDbType === 'pgsql')
 {
-    $sql = 'SELECT relname FROM pg_class WHERE relkind = \'S\' ';
+    $sql = 'SELECT relname FROM pg_class WHERE relkind = \'S\'';
     $sqlStatement = $db->query($sql);
 
     while($relname = $sqlStatement->fetchColumn())
@@ -238,15 +237,15 @@ if($gDbType === 'pgsql')
 }
 
 // set parameter lang to default language for this installation
-$sql = 'UPDATE '.$g_tbl_praefix.'_preferences SET prf_value = \''.$getLanguage.'\'
-         WHERE prf_name = \'system_language\' ';
-$db->query($sql);
+$sql = 'UPDATE '.$g_tbl_praefix.'_preferences
+           SET prf_value = ? -- $getLanguage
+         WHERE prf_name = \'system_language\'';
+$db->queryPrepared($sql, array($getLanguage));
 
 if($gDbType === 'mysql')
 {
     // activate foreign key checks, so database is consistent
-    $sql = 'SET foreign_key_checks = 1 ';
-    $db->query($sql);
+    $db->query('SET foreign_key_checks = 1');
 }
 
 echo 'Installation successful!<br />';
@@ -258,4 +257,4 @@ $databaseVersion = $systemComponent->getValue('com_version');
 echo '<p>Database and test-data have the Admidio version '.$databaseVersion.'.<br />
  Your files have Admidio version '.ADMIDIO_VERSION.'.<br /><br />
  Please perform an <a href="../adm_program/installation/update.php">update of your database</a>.</p>
- <p style="font-size: 9pt;">&copy; 2004 - 2016&nbsp;&nbsp;The Admidio team</p>';
+ <p style="font-size: 9pt;">&copy; 2004 - 2017&nbsp;&nbsp;The Admidio team</p>';

@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * messages form page
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -21,7 +21,7 @@
  *
  *****************************************************************************/
 
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // Initialize and check the parameters
 $getMsgType     = admFuncVariableIsValid($_GET, 'msg_type',     'string');
@@ -84,10 +84,11 @@ if ($gPreferences['mail_max_receiver'] > 0 && $getMsgType !== 'PM')
 }
 
 $list = array();
+$arrAllVisibleRoles = $gCurrentUser->getAllVisibleRoles();
 
-if ($gValidLogin && $getMsgType === 'PM' && count($gCurrentUser->getAllVisibleRoles()) > 0)
+if ($gValidLogin && $getMsgType === 'PM' && count($arrAllVisibleRoles) > 0)
 {
-    $sql = 'SELECT usr_id, FIRST_NAME.usd_value AS first_name, LAST_NAME.usd_value AS last_name, usr_login_name
+    $sql = 'SELECT usr_id, first_name.usd_value AS first_name, last_name.usd_value AS last_name, usr_login_name
                   FROM '.TBL_MEMBERS.'
             INNER JOIN '.TBL_ROLES.'
                     ON rol_id = mem_rol_id
@@ -95,25 +96,37 @@ if ($gValidLogin && $getMsgType === 'PM' && count($gCurrentUser->getAllVisibleRo
                     ON cat_id = rol_cat_id
             INNER JOIN '.TBL_USERS.'
                     ON usr_id = mem_usr_id
-             LEFT JOIN '.TBL_USER_DATA.' LAST_NAME
-                    ON LAST_NAME.usd_usr_id = usr_id
-                   AND LAST_NAME.usd_usf_id = '. $gProfileFields->getProperty('LAST_NAME', 'usf_id'). '
-             LEFT JOIN '.TBL_USER_DATA.' FIRST_NAME
-                    ON FIRST_NAME.usd_usr_id = usr_id
-                   AND FIRST_NAME.usd_usf_id = '. $gProfileFields->getProperty('FIRST_NAME', 'usf_id'). '
-                 WHERE rol_id IN ('.implode(',', $gCurrentUser->getAllVisibleRoles()).')
-                   AND cat_name_intern <> \'CONFIRMATION_OF_PARTICIPATION\'
-                   AND (  cat_org_id = '. $gCurrentOrganization->getValue('org_id').'
+             LEFT JOIN '.TBL_USER_DATA.' AS last_name
+                    ON last_name.usd_usr_id = usr_id
+                   AND last_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'LAST_NAME\', \'usf_id\')
+             LEFT JOIN '.TBL_USER_DATA.' AS first_name
+                    ON first_name.usd_usr_id = usr_id
+                   AND first_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'FIRST_NAME\', \'usf_id\')
+                 WHERE rol_id IN ('.replaceValuesArrWithQM($arrAllVisibleRoles).')
+                   AND cat_name_intern <> \'EVENTS\'
+                   AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                        OR cat_org_id IS NULL )
-                   AND mem_begin <= \''.DATE_NOW.'\'
-                   AND mem_end   >= \''.DATE_NOW.'\'
-                   AND usr_id <> '.$gCurrentUser->getValue('usr_id').'
+                   AND mem_begin <= ? -- DATE_NOW
+                   AND mem_end   >= ? -- DATE_NOW
+                   AND usr_id <> ? -- $gCurrentUser->getValue(\'usr_id\')
                    AND usr_valid  = 1
                    AND usr_login_name IS NOT NULL
-              GROUP BY usr_id, LAST_NAME.usd_value, FIRST_NAME.usd_value, usr_login_name
-              ORDER BY LAST_NAME.usd_value, FIRST_NAME.usd_value';
-
-    $dropStatement = $gDb->query($sql);
+              GROUP BY usr_id, last_name.usd_value, first_name.usd_value, usr_login_name
+              ORDER BY last_name.usd_value, first_name.usd_value';
+    $queryParamsArr = array(
+        array(
+            $gProfileFields->getProperty('LAST_NAME', 'usf_id'),
+            $gProfileFields->getProperty('FIRST_NAME', 'usf_id')
+        ),
+        $arrAllVisibleRoles,
+        array(
+            $gCurrentOrganization->getValue('org_id'),
+            DATE_NOW,
+            DATE_NOW,
+            $gCurrentUser->getValue('usr_id')
+        )
+    );
+    $dropStatement = $gDb->queryPrepared($sql, array_merge($queryParamsArr[0], $queryParamsArr[1], $queryParamsArr[2]));
 
     while ($row = $dropStatement->fetch())
     {
@@ -160,27 +173,27 @@ if (strpos($gNavigation->getUrl(), 'messages_send.php') > 0 && isset($_SESSION['
 {
     // Das Formular wurde also schon einmal ausgefüllt,
     // da der User hier wieder gelandet ist nach der Mailversand-Seite
-    $form_values = strStripSlashesDeep($_SESSION['message_request']);
+    $formValues = strStripSlashesDeep($_SESSION['message_request']);
     unset($_SESSION['message_request']);
 
-    if(!isset($form_values['carbon_copy']))
+    if(!isset($formValues['carbon_copy']))
     {
-        $form_values['carbon_copy'] = 0;
+        $formValues['carbon_copy'] = false;
     }
-    if(!isset($form_values['delivery_confirmation']))
+    if(!isset($formValues['delivery_confirmation']))
     {
-        $form_values['delivery_confirmation'] = 0;
+        $formValues['delivery_confirmation'] = false;
     }
 }
 else
 {
-    $form_values['namefrom']    = '';
-    $form_values['mailfrom']    = '';
-    $form_values['subject']     = $getSubject;
-    $form_values['msg_body']    = '';
-    $form_values['msg_to']      = 0;
-    $form_values['carbon_copy'] = $getCarbonCopy;
-    $form_values['delivery_confirmation'] = $getDeliveryConfirmation;
+    $formValues['namefrom']    = '';
+    $formValues['mailfrom']    = '';
+    $formValues['subject']     = $getSubject;
+    $formValues['msg_body']    = '';
+    $formValues['msg_to']      = '';
+    $formValues['carbon_copy'] = $getCarbonCopy;
+    $formValues['delivery_confirmation'] = $getDeliveryConfirmation;
 }
 
 // create html page object
@@ -226,14 +239,14 @@ if ($getMsgType === 'PM')
 
     if($getSubject === '')
     {
-        $form->addInput('subject', $gL10n->get('MAI_SUBJECT'), $form_values['subject'], array('maxLength' => 77, 'property' => FIELD_REQUIRED));
+        $form->addInput('subject', $gL10n->get('MAI_SUBJECT'), $formValues['subject'], array('maxLength' => 77, 'property' => FIELD_REQUIRED));
     }
     else
     {
-        $form->addInput('subject', null, $form_values['subject'], array('type' => 'hidden'));
+        $form->addInput('subject', null, $formValues['subject'], array('type' => 'hidden'));
     }
 
-    $form->addMultilineTextInput('msg_body', $gL10n->get('SYS_PM'), $form_values['msg_body'], 10, array('maxLength' => 254, 'property' => FIELD_REQUIRED));
+    $form->addMultilineTextInput('msg_body', $gL10n->get('SYS_PM'), $formValues['msg_body'], 10, array('maxLength' => 254, 'property' => FIELD_REQUIRED));
 
     $form->closeGroupBox();
 
@@ -285,9 +298,8 @@ elseif (!isset($messageStatement))
     $form = new HtmlForm('mail_send_form', ADMIDIO_URL.FOLDER_MODULES.'/messages/messages_send.php?'.$formParam, $page, array('enableFileUpload' => true));
     $form->openGroupBox('gb_mail_contact_details', $gL10n->get('SYS_CONTACT_DETAILS'));
 
-    $preloadData = array();
-    $sqlRoleIds  = '';
-    $sqlUserIds  = '';
+    $sqlRoleIds = array();
+    $sqlUserIds = '';
     $sqlParticipationRoles = '';
 
     if ($getUserId > 0)
@@ -300,14 +312,15 @@ elseif (!isset($messageStatement))
     {
         // role id was committed then write email to this role
         $preloadData = 'groupID: '.$getRoleId;
-        $sqlRoleIds  = $getRoleId;
+        $sqlRoleIds  = array($getRoleId);
     }
     else
     {
         // no user or role was committed then show list with all roles and users
         // where the current user has the right to send email
-        $sqlRoleIds = implode(',', $gCurrentUser->getAllMailRoles());
-        $sqlParticipationRoles = ' AND cat_name_intern <> \'CONFIRMATION_OF_PARTICIPATION\' ';
+        $preloadData = isset($formValues['msg_to']) ? $formValues['msg_to'] : '';
+        $sqlRoleIds = $gCurrentUser->getAllMailRoles();
+        $sqlParticipationRoles = ' AND cat_name_intern <> \'EVENTS\' ';
     }
 
     // keine Uebergabe, dann alle Rollen entsprechend Login/Logout auflisten
@@ -318,10 +331,10 @@ elseif (!isset($messageStatement))
         $listActiveAndFormer = array();
         $listRoleIdsArray = array();
 
-        if($sqlRoleIds === '')
+        if(count($sqlRoleIds) === 0)
         {
             // if only send mail to one user than this user must be in a role the current user is allowed to see
-            $listVisibleRoleArray = $gCurrentUser->getAllVisibleRoles();
+            $listVisibleRoleArray = $arrAllVisibleRoles;
         }
         else
         {
@@ -330,13 +343,14 @@ elseif (!isset($messageStatement))
                       FROM '.TBL_ROLES.'
                 INNER JOIN '.TBL_CATEGORIES.'
                         ON cat_id = rol_cat_id
-                       AND (  cat_org_id = '.$gCurrentOrganization->getValue('org_id').'
+                       AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                            OR cat_org_id IS NULL)
-                     WHERE rol_id IN ('.$sqlRoleIds.')
+                     WHERE rol_id IN ('.replaceValuesArrWithQM($sqlRoleIds).')
                        AND rol_valid = 1
                            '.$sqlParticipationRoles.'
                   ORDER BY rol_name ASC';
-            $rolesStatement = $gDb->query($sql);
+            $queryParams = array($gCurrentOrganization->getValue('org_id'));
+            $rolesStatement = $gDb->queryPrepared($sql, array_merge($queryParams, $sqlRoleIds));
             $rolesArray = $rolesStatement->fetchAll();
 
             foreach($rolesArray as $roleArray)
@@ -356,7 +370,7 @@ elseif (!isset($messageStatement))
             }
 
             $list = array_merge($list, $listFormer, $listActiveAndFormer);
-            $listVisibleRoleArray = array_intersect($listRoleIdsArray, $gCurrentUser->getAllVisibleRoles());
+            $listVisibleRoleArray = array_intersect($listRoleIdsArray, $arrAllVisibleRoles);
         }
 
         if($getRoleId === 0 && count($listVisibleRoleArray) > 0)
@@ -376,41 +390,56 @@ elseif (!isset($messageStatement))
                        AND field.usf_type = \'EMAIL\'
                  LEFT JOIN '.TBL_USER_DATA.' AS last_name
                         ON last_name.usd_usr_id = usr_id
-                       AND last_name.usd_usf_id = '. $gProfileFields->getProperty('LAST_NAME', 'usf_id'). '
+                       AND last_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'LAST_NAME\', \'usf_id\')
                  LEFT JOIN '.TBL_USER_DATA.' AS first_name
                         ON first_name.usd_usr_id = usr_id
-                       AND first_name.usd_usf_id = '. $gProfileFields->getProperty('FIRST_NAME', 'usf_id'). '
-                     WHERE rol_id IN ('.implode(',', $listVisibleRoleArray).')
-                       AND mem_begin <=  \''.DATE_NOW.'\'
-                       AND usr_id <> '.$gCurrentUser->getValue('usr_id').
-                           $sqlUserIds.'
+                       AND first_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'FIRST_NAME\', \'usf_id\')
+                     WHERE rol_id IN ('.replaceValuesArrWithQM($listVisibleRoleArray).')
+                       AND mem_begin <= ? -- DATE_NOW
+                       AND usr_id    <> ? -- $gCurrentUser->getValue(\'usr_id\')
+                           '.$sqlUserIds.'
                        AND usr_valid = 1
                   ORDER BY last_name, first_name, mem_end DESC';
-            $statement = $gDb->query($sql);
+            $queryParams = array_merge(
+                array(
+                    $gProfileFields->getProperty('LAST_NAME', 'usf_id'),
+                    $gProfileFields->getProperty('FIRST_NAME', 'usf_id')
+                ),
+                $arrAllVisibleRoles,
+                array(
+                    DATE_NOW,
+                    $gCurrentUser->getValue('usr_id')
+                )
+            );
+            if ($sqlUserIds !== '')
+            {
+                $queryParams[] = $getUserId;
+            }
+            $statement = $gDb->queryPrepared($sql, $queryParams);
 
-            $passive_list = array();
-            $active_list = array();
+            $passiveList = array();
+            $activeList = array();
 
             while ($row = $statement->fetch())
             {
                 // every user should only be once in the list
-                if (!isset($currentUserId) || $currentUserId != $row['usr_id'])
+                if (!isset($currentUserId) || $currentUserId !== (int) $row['usr_id'])
                 {
                     // if membership is active then show them as active members
                     if($row['mem_begin'] <= DATE_NOW && $row['mem_end'] >= DATE_NOW)
                     {
-                        $active_list[] = array($row['usr_id'], $row['last_name'].' '.$row['first_name'], $gL10n->get('LST_ACTIVE_MEMBERS'));
-                        $currentUserId = $row['usr_id'];
+                        $activeList[] = array($row['usr_id'], $row['last_name'].' '.$row['first_name'], $gL10n->get('LST_ACTIVE_MEMBERS'));
+                        $currentUserId = (int) $row['usr_id'];
                     }
                     elseif($gPreferences['mail_show_former'] == 1)
                     {
-                        $passive_list[] = array($row['usr_id'], $row['last_name'].' '.$row['first_name'], $gL10n->get('LST_FORMER_MEMBERS'));
-                        $currentUserId  = $row['usr_id'];
+                        $passiveList[] = array($row['usr_id'], $row['last_name'].' '.$row['first_name'], $gL10n->get('LST_FORMER_MEMBERS'));
+                        $currentUserId  = (int) $row['usr_id'];
                     }
                 }
             }
 
-            $list = array_merge($list, $active_list, $passive_list);
+            $list = array_merge($list, $activeList, $passiveList);
         }
     }
     else
@@ -421,13 +450,13 @@ elseif (!isset($messageStatement))
                   FROM '.TBL_ROLES.'
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = rol_cat_id
-                   AND (  cat_org_id = '. $gCurrentOrganization->getValue('org_id'). '
+                   AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                        OR cat_org_id IS NULL)
                  WHERE rol_mail_this_role = 3
                    AND rol_valid  = 1
               ORDER BY cat_sequence, rol_name ';
 
-        $statement = $gDb->query($sql);
+        $statement = $gDb->queryPrepared($sql, array($gCurrentOrganization->getValue('org_id')));
         while($row = $statement->fetch())
         {
             $list[] = array('groupID: '.$row['rol_id'], $row['rol_name'], '');
@@ -437,11 +466,11 @@ elseif (!isset($messageStatement))
 
     if($postListId > 0)
     {
-    	$preloadData = 'dummy';
-    	$showlist = new ListConfiguration($gDb, $postListId);
-        $list = array('dummy' => $gL10n->get('LST_LIST'). (strlen($showlist->getValue('lst_name')) > 0 ? ' - '.$showlist->getValue('lst_name') : '' ));
+        $preloadData = 'dummy';
+        $showlist = new ListConfiguration($gDb, $postListId);
+        $list = array('dummy' => $gL10n->get('LST_LIST'). (strlen($showlist->getValue('lst_name')) > 0 ? ' - '.$showlist->getValue('lst_name') : ''));
         $form->addInput('userIdList', '', $postUserIdList, array('property' => FIELD_HIDDEN));
-       	$form->addInput('lst_id', '', $postListId, array('property' => FIELD_HIDDEN));
+        $form->addInput('lst_id', '', $postListId, array('property' => FIELD_HIDDEN));
     }
 
     // no roles or users found then show message
@@ -466,29 +495,33 @@ elseif (!isset($messageStatement))
             INNER JOIN '. TBL_USER_DATA .'
                     ON usd_usf_id = usf_id
                  WHERE usf_type = \'EMAIL\'
-                   AND usd_usr_id = '.$gCurrentUser->getValue('usr_id').'
+                   AND usd_usr_id = ? -- $gCurrentUser->getValue(\'usr_id\')
                    AND usd_value IS NOT NULL';
 
-        $pdoStatement = $gDb->query($sql);
-        $possible_emails = $pdoStatement->fetchColumn();
+        $pdoStatement = $gDb->queryPrepared($sql, array($gCurrentUser->getValue('usr_id')));
+        $possibleEmails = $pdoStatement->fetchColumn();
 
         $form->addInput('name', $gL10n->get('MAI_YOUR_NAME'), $gCurrentUser->getValue('FIRST_NAME'). ' '. $gCurrentUser->getValue('LAST_NAME'), array('maxLength' => 50, 'property' => FIELD_DISABLED));
 
-        if($possible_emails > 1)
+        if($possibleEmails > 1)
         {
-            $sql = 'SELECT email.usd_value AS ID, email.usd_value AS email
-                      FROM '.TBL_USERS.'
-                INNER JOIN '.TBL_USER_DATA.' AS email
-                        ON email.usd_usr_id = usr_id
-                       AND LENGTH(email.usd_value) > 0
-                INNER JOIN '.TBL_USER_FIELDS.' AS field
-                        ON field.usf_id = email.usd_usf_id
-                       AND field.usf_type = \'EMAIL\'
-                     WHERE usr_id = '. $gCurrentUser->getValue('usr_id'). '
-                       AND usr_valid = 1
-                  GROUP BY email.usd_value, email.usd_value';
+            $sqlData['params'] = 'SELECT email.usd_value AS ID, email.usd_value AS email
+                                    FROM '.TBL_USERS.'
+                              INNER JOIN '.TBL_USER_DATA.' AS email
+                                      ON email.usd_usr_id = usr_id
+                                     AND LENGTH(email.usd_value) > 0
+                              INNER JOIN '.TBL_USER_FIELDS.' AS field
+                                      ON field.usf_id = email.usd_usf_id
+                                     AND field.usf_type = \'EMAIL\'
+                                   WHERE usr_id = ? -- $gCurrentUser->getValue(\'usr_id\')
+                                     AND usr_valid = 1
+                                GROUP BY email.usd_value, email.usd_value';
+            $sqlData['params'] = array($gCurrentUser->getValue('usr_id'));
 
-            $form->addSelectBoxFromSql('mailfrom', $gL10n->get('MAI_YOUR_EMAIL'), $gDb, $sql, array('maxLength' => 50, 'defaultValue' => $gCurrentUser->getValue('EMAIL'), 'showContextDependentFirstEntry' => false));
+            $form->addSelectBoxFromSql(
+                'mailfrom', $gL10n->get('MAI_YOUR_EMAIL'), $gDb, $sqlData,
+                array('maxLength' => 50, 'defaultValue' => $gCurrentUser->getValue('EMAIL'), 'showContextDependentFirstEntry' => false)
+            );
         }
         else
         {
@@ -497,26 +530,26 @@ elseif (!isset($messageStatement))
     }
     else
     {
-        $form->addInput('namefrom', $gL10n->get('MAI_YOUR_NAME'), $form_values['namefrom'], array('maxLength' => 50, 'property' => FIELD_REQUIRED));
-        $form->addInput('mailfrom', $gL10n->get('MAI_YOUR_EMAIL'), $form_values['mailfrom'], array('type' => 'email', 'maxLength' => 50, 'property' => FIELD_REQUIRED));
+        $form->addInput('namefrom', $gL10n->get('MAI_YOUR_NAME'), $formValues['namefrom'], array('maxLength' => 50, 'property' => FIELD_REQUIRED));
+        $form->addInput('mailfrom', $gL10n->get('MAI_YOUR_EMAIL'), $formValues['mailfrom'], array('type' => 'email', 'maxLength' => 50, 'property' => FIELD_REQUIRED));
     }
 
     // show option to send a copy to your email address only for registered users because of spam abuse
     if($gValidLogin)
     {
-        $form->addCheckbox('carbon_copy', $gL10n->get('MAI_SEND_COPY'), $form_values['carbon_copy']);
+        $form->addCheckbox('carbon_copy', $gL10n->get('MAI_SEND_COPY'), $formValues['carbon_copy']);
     }
 
     // if preference is set then show a checkbox where the user can request a delivery confirmation for the email
     if (($gCurrentUser->getValue('usr_id') > 0 && $gPreferences['mail_delivery_confirmation'] == 2) || $gPreferences['mail_delivery_confirmation'] == 1)
     {
-        $form->addCheckbox('delivery_confirmation', $gL10n->get('MAI_DELIVERY_CONFIRMATION'), $form_values['delivery_confirmation']);
+        $form->addCheckbox('delivery_confirmation', $gL10n->get('MAI_DELIVERY_CONFIRMATION'), $formValues['delivery_confirmation']);
     }
 
     $form->closeGroupBox();
 
     $form->openGroupBox('gb_mail_message', $gL10n->get('SYS_MESSAGE'));
-    $form->addInput('subject', $gL10n->get('MAI_SUBJECT'), $form_values['subject'], array('maxLength' => 77, 'property' => FIELD_REQUIRED));
+    $form->addInput('subject', $gL10n->get('MAI_SUBJECT'), $formValues['subject'], array('maxLength' => 77, 'property' => FIELD_REQUIRED));
 
     // Nur eingeloggte User duerfen Attachments anhaengen...
     if ($gValidLogin && ($gPreferences['max_email_attachment_size'] > 0) && (ini_get('file_uploads') === '1'))
@@ -531,11 +564,11 @@ elseif (!isset($messageStatement))
     // add textfield or ckeditor to form
     if($gValidLogin && $gPreferences['mail_html_registered_users'] == 1)
     {
-        $form->addEditor('msg_body', null, $form_values['msg_body'], array('property' => FIELD_REQUIRED));
+        $form->addEditor('msg_body', null, $formValues['msg_body'], array('property' => FIELD_REQUIRED));
     }
     else
     {
-        $form->addMultilineTextInput('msg_body', $gL10n->get('SYS_TEXT'), $form_values['msg_body'], 10, array('property' => FIELD_REQUIRED));
+        $form->addMultilineTextInput('msg_body', $gL10n->get('SYS_TEXT'), $formValues['msg_body'], 10, array('property' => FIELD_REQUIRED));
     }
 
     $form->closeGroupBox();
@@ -556,12 +589,12 @@ elseif (!isset($messageStatement))
 
 if (isset($messageStatement))
 {
-    require_once('messages_functions.php');
+    require_once(__DIR__ . '/messages_functions.php');
 
     $page->addHtml('<br />');
     while ($row = $messageStatement->fetch())
     {
-        if ($row['msc_usr_id'] == $gCurrentUser->getValue('usr_id'))
+        if ((int) $row['msc_usr_id'] === (int) $gCurrentUser->getValue('usr_id'))
         {
             $sentUser = $gCurrentUser->getValue('FIRST_NAME'). ' '. $gCurrentUser->getValue('LAST_NAME');
         }

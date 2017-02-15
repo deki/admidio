@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Diese Klasse dient dazu Systemmails zu verschicken
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -88,7 +88,7 @@ class SystemMail extends Email
         // zusaetzliche Variablen ersetzen
         foreach ($this->smVariables as $number => $value)
         {
-            $mailSrcText = preg_replace('/#variable'.$number.'#/', $value, $mailSrcText);
+            $mailSrcText = str_replace('#variable'.$number.'#', $value, $mailSrcText);
         }
 
         // Betreff und Inhalt anhand von Kennzeichnungen splitten oder ggf. Default-Inhalte nehmen
@@ -144,7 +144,7 @@ class SystemMail extends Email
         // if something went wrong then throw an exception with the error message
         if($returnMessage !== true)
         {
-            throw new AdmException('SYS_EMAIL_NOT_SEND', $user->getValue('EMAIL'), $this->sendEmail());
+            throw new AdmException('SYS_EMAIL_NOT_SEND', $user->getValue('EMAIL'), $returnMessage);
         }
 
         return true;

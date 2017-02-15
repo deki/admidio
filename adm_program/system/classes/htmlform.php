@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -246,6 +246,42 @@ class HtmlForm extends HtmlFormBasic
     }
 
     /**
+     * Add a new button with a custom text to the form. This button could have
+     * an icon in front of the text. Different to addButton this method adds an
+     * additional @b div around the button and the type of the button is @b submit.
+     * @param string $id      Id of the button. This will also be the name of the button.
+     * @param string $text    Text of the button
+     * @param array  $options (optional) An array with the following possible entries:
+     *                        - @b icon : Optional parameter. Path and filename of an icon.
+     *                          If set a icon will be shown in front of the text.
+     *                        - @b link : If set a javascript click event with a page load to this link
+     *                          will be attached to the button.
+     *                        - @b onClickText : A text that will be shown after a click on this button
+     *                          until the next page is loaded. The button will be disabled after click.
+     *                        - @b class : Optional an additional css classname. The class @b admButton
+     *                          is set as default and need not set with this parameter.
+     *                        - @b type : If set to true this button get the type @b submit. This will
+     *                          be the default.
+     */
+    public function addSubmitButton($id, $text, array $options = array())
+    {
+        // create array with all options
+        $optionsDefault = array('icon' => '', 'link' => '', 'onClickText' => '', 'class' => '', 'type' => 'submit');
+        $optionsAll     = array_replace($optionsDefault, $options);
+
+        // add default css class
+        $optionsAll['class'] .= ' btn-primary';
+
+        // now add button to form
+        $this->addButton($id, $text, $optionsAll);
+
+        if (!$this->buttonGroupOpen)
+        {
+            $this->addHtml('<div class="form-alert" style="display: none;">&nbsp;</div>');
+        }
+    }
+
+    /**
      * Add a captcha with an input field to the form. The captcha could be a picture with a character code
      * or a simple mathematical calculation that must be solved.
      * @param string $id    Id of the captcha field. This will also be the name of the captcha field.
@@ -267,9 +303,9 @@ class HtmlForm extends HtmlFormBasic
 
         // add a row with the captcha puzzle
         $this->openControlStructure('captcha_puzzle', '', FIELD_DEFAULT, '', '', $attributes['class']);
-        $onClickCode = 'document.getElementById("captcha").src="' . ADMIDIO_URL . FOLDER_LIBS_CLIENT . '/securimage/securimage_show.php?" + Math.random(); return false;';
+        $onClickCode = 'document.getElementById(\'captcha\').src=\'' . ADMIDIO_URL . FOLDER_LIBS_CLIENT . '/securimage/securimage_show.php?\' + Math.random(); return false;';
         $this->addHtml('<img id="captcha" src="' . ADMIDIO_URL . FOLDER_LIBS_CLIENT . '/securimage/securimage_show.php" alt="CAPTCHA Image" />
-                        <a class="admidio-icon-link" href="#" onclick="' . $onClickCode . '"><img
+                        <a class="admidio-icon-link" href="javascript:void(0)" onclick="' . $onClickCode . '"><img
                             src="' . THEME_URL . '/icons/view-refresh.png" alt="' . $gL10n->get('SYS_RELOAD') . '" title="' . $gL10n->get('SYS_RELOAD') . '" /></a>');
         $this->closeControlStructure();
 
@@ -510,7 +546,7 @@ class HtmlForm extends HtmlFormBasic
         );
         $this->addHtml(
             '<div class="' . $attributes['class'] . '">
-                <textarea id="' . $id . '" name="' . $id . '"style="width: 100%;">' . $value . '</textarea>
+                <textarea id="' . $id . '" name="' . $id . '" style="width: 100%;">' . $value . '</textarea>
             </div>'
         );
         $this->closeControlStructure($optionsAll['helpTextIdInline']);
@@ -599,7 +635,7 @@ class HtmlForm extends HtmlFormBasic
         {
             $javascriptCode = '
                 // add new line to add new attachment to this mail
-                $("#btn_add_attachment_' . $id . '").click(function () {
+                $("#btn_add_attachment_' . $id . '").click(function() {
                     newAttachment = document.createElement("input");
                     $(newAttachment).attr("type", "file");
                     $(newAttachment).attr("name", "userfile[]");
@@ -672,7 +708,7 @@ class HtmlForm extends HtmlFormBasic
      */
     public function addInput($id, $label, $value, array $options = array())
     {
-        global $gL10n, $gPreferences;
+        global $gL10n, $gPreferences, $gLogger;
 
         $attributes = array('class' => 'form-control');
         ++$this->countElements;
@@ -680,11 +716,13 @@ class HtmlForm extends HtmlFormBasic
         // create array with all options
         $optionsDefault = array(
             'type'             => 'text',
+            'placeholder'      => '',
+            'pattern'          => '',
             'minLength'        => null,
-            'maxLength'        => 0,
+            'maxLength'        => null,
             'minNumber'        => null,
             'maxNumber'        => null,
-            'step'             => 1,
+            'step'             => null,
             'property'         => FIELD_DEFAULT,
             'passwordStrength' => false,
             'passwordUserData' => array(),
@@ -696,6 +734,8 @@ class HtmlForm extends HtmlFormBasic
         );
         $optionsAll = array_replace($optionsDefault, $options);
 
+        $attributes['placeholder'] = $optionsAll['placeholder'];
+
         // set min/max input length
         switch ($optionsAll['type'])
         {
@@ -705,17 +745,35 @@ class HtmlForm extends HtmlFormBasic
             case 'url':
             case 'tel':
             case 'password':
+                $attributes['pattern'] = $optionsAll['pattern'];
+
                 $attributes['minlength'] = $optionsAll['minLength'];
 
                 if ($optionsAll['maxLength'] > 0)
                 {
                     $attributes['maxlength'] = $optionsAll['maxLength'];
+
+                    if ($attributes['minlength'] > $attributes['maxlength'])
+                    {
+                        $gLogger->warning(
+                            'Attribute "minlength" is greater than "maxlength"!',
+                            array('minlength' => $attributes['maxlength'], 'maxlength' => $attributes['maxlength'])
+                        );
+                    }
                 }
                 break;
             case 'number':
                 $attributes['min'] = $optionsAll['minNumber'];
                 $attributes['max'] = $optionsAll['maxNumber'];
                 $attributes['step'] = $optionsAll['step'];
+
+                if ($attributes['min'] > $attributes['max'])
+                {
+                    $gLogger->warning(
+                        'Attribute "min" is greater than "max"!',
+                        array('min' => $attributes['min'], 'max' => $attributes['max'])
+                    );
+                }
                 break;
         }
 
@@ -749,8 +807,14 @@ class HtmlForm extends HtmlFormBasic
         // add a nice modern datepicker to date inputs
         if ($optionsAll['type'] === 'date' || $optionsAll['type'] === 'datetime' || $optionsAll['type'] === 'birthday')
         {
-            $attributes['placeholder'] = DateTimeExtended::getDateFormatForDatepicker($gPreferences['system_date']);
-            $javascriptCode = '';
+            if ($optionsAll['placeholder'] === '')
+            {
+                $attributes['placeholder'] = DateTimeExtended::getDateFormatForDatepicker($gPreferences['system_date']);
+            }
+            else
+            {
+                $attributes['placeholder'] = $optionsAll['placeholder'];
+            }
 
             // if you have a birthday field than start with the years selection
             if ($optionsAll['type'] === 'birthday')
@@ -763,6 +827,8 @@ class HtmlForm extends HtmlFormBasic
                 $attributes['data-provide'] = 'datepicker';
                 $datepickerOptions = ' todayBtn: "linked", ';
             }
+
+            $javascriptCode = '';
 
             if (!$this->datepickerInitialized || $optionsAll['type'] === 'birthday')
             {
@@ -790,6 +856,12 @@ class HtmlForm extends HtmlFormBasic
             $this->addJavascriptCode($javascriptCode, true);
         }
 
+        // Remove attributes that are not set
+        $attributes = array_filter($attributes, function($attribute)
+        {
+            return $attribute !== '' && $attribute !== null;
+        });
+
         if ($optionsAll['property'] !== FIELD_HIDDEN)
         {
             // now create html for the field
@@ -808,7 +880,6 @@ class HtmlForm extends HtmlFormBasic
             $attributes['class'] .= ' datetime-date-control';
             $this->addSimpleInput('text', $id, $id, $dateValue, $attributes);
             $attributes['class'] .= ' datetime-time-control';
-            $attributes['maxlength'] = '8';
             $attributes['data-provide'] = '';
             $this->addSimpleInput('text', $id . '_time', $id . '_time', $timeValue, $attributes);
         }
@@ -944,7 +1015,7 @@ class HtmlForm extends HtmlFormBasic
 
             // if max field length is set then show a counter how many characters still available
             $javascriptCode = '
-                $("#' . $id . '"").NobleCount("#' . $id . '_counter", {
+                $("#' . $id . '").NobleCount("#' . $id . '_counter", {
                     max_chars: ' . $optionsAll['maxLength'] . ',
                     on_negative: "systeminfoBad",
                     block_negative: true
@@ -1035,12 +1106,12 @@ class HtmlForm extends HtmlFormBasic
             $attributes['class'] .= ' ' . $optionsAll['class'];
         }
 
-        $this->openControlStructure('', $label, $optionsAll['property'], $optionsAll['helpTextIdLabel'], $optionsAll['icon']);
+        $this->openControlStructure($id, $label, $optionsAll['property'], $optionsAll['helpTextIdLabel'], $optionsAll['icon']);
 
         // set one radio button with no value will be set in front of the other array.
         if ($optionsAll['showNoValueButton'])
         {
-            if ($optionsAll['defaultValue'] === '' && count($values) === 0)
+            if ($optionsAll['defaultValue'] === '')
             {
                 $attributes['checked'] = 'checked';
             }
@@ -1053,6 +1124,8 @@ class HtmlForm extends HtmlFormBasic
         // for each entry of the array create an input radio field
         foreach ($values as $key => $value)
         {
+            unset($attributes['checked']);
+
             if ($optionsAll['defaultValue'] == $key)
             {
                 $attributes['checked'] = 'checked';
@@ -1092,6 +1165,8 @@ class HtmlForm extends HtmlFormBasic
      *                          created within the $_POST array.
      *                        - @b search : If set to @b true the jQuery plugin Select2 will be used to create a selectbox
      *                          with a search field.
+     *                        - @placeholder : When using the jQuery plugin Select2 you can set a placeholder that will be shown
+     *                          if no entry is selected
      *                        - @b maximumSelectionNumber : If @b multiselect is enabled then you can configure the maximum number
      *                          of selections that could be done. If this limit is reached the user can't add another entry to the selectbox.
      *                        - @b helpTextIdLabel : A unique text id from the translation xml files that should be shown
@@ -1127,6 +1202,7 @@ class HtmlForm extends HtmlFormBasic
             'firstEntry'                     => '',
             'multiselect'                    => false,
             'search'                         => false,
+            'placeholder'                    => '',
             'maximumSelectionNumber'         => 0,
             'helpTextIdLabel'                => '',
             'helpTextIdInline'               => '',
@@ -1146,7 +1222,6 @@ class HtmlForm extends HtmlFormBasic
             $attributes['required'] = 'required';
         }
 
-        $placeholder = '';
         if ($optionsAll['multiselect'])
         {
             $attributes['multiple'] = 'multiple';
@@ -1159,7 +1234,10 @@ class HtmlForm extends HtmlFormBasic
 
             if ($optionsAll['showContextDependentFirstEntry'] && $optionsAll['property'] === FIELD_REQUIRED)
             {
-                $placeholder = $gL10n->get('SYS_SELECT_FROM_LIST');
+                if($optionsAll['placeholder'] === '')
+                {
+                    $optionsAll['placeholder'] = $gL10n->get('SYS_SELECT_FROM_LIST');
+                }
 
                 // reset the preferences so the logic for not multiselect will not be performed
                 $optionsAll['showContextDependentFirstEntry'] = false;
@@ -1272,19 +1350,14 @@ class HtmlForm extends HtmlFormBasic
                     theme: "bootstrap",
                     allowClear: ' . $allowClear . ',
                     ' . $maximumSelectionNumber . '
-                    placeholder: "' . $placeholder . '",
+                    placeholder: "' . $optionsAll['placeholder'] . '",
                     language: "' . $gL10n->getLanguage() . '"
                 });';
 
             // add default values to multi select
             if (is_array($optionsAll['defaultValue']) && count($optionsAll['defaultValue']) > 0)
             {
-                $htmlDefaultValues = '';
-                foreach ($optionsAll['defaultValue'] as $key => $htmlDefaultValue)
-                {
-                    $htmlDefaultValues .= '"' . $htmlDefaultValue . '",';
-                }
-                $htmlDefaultValues = substr($htmlDefaultValues, 0, -1);
+                $htmlDefaultValues = '"' . implode('", "', $optionsAll['defaultValue']) . '"';
 
                 $javascriptCode .= ' $("#' . $id . '").val([' . $htmlDefaultValues . ']).trigger("change");';
             }
@@ -1311,43 +1384,42 @@ class HtmlForm extends HtmlFormBasic
      * column represents the label of each option of the selectbox. Optional you can add a third column
      * to the sql statement. This column will be used as label for an optiongroup. Each time the value
      * of the third column changed a new optiongroup will be created.
-     * @param string    $id             Id of the selectbox. This will also be the name of the selectbox.
-     * @param string    $label          The label of the selectbox.
-     * @param \Database $database Object of the class Database. This should be the default global object @b $gDb.
-     * @param string    $sql            Any SQL statement that return 2 columns. The first column will be the internal value of the
-     *                                  selectbox item and will be submitted with the form. The second column represents the
-     *                                  displayed value of the item. Each row of the result will be a new selectbox entry.
-     * @param array     $options (optional) An array with the following possible entries:
-     *                           - @b property : With this param you can set the following properties:
-     *                             + @b FIELD_DEFAULT  : The field can accept an input.
-     *                             + @b FIELD_REQUIRED : The field will be marked as a mandatory field where the user must insert a value.
-     *                             + @b FIELD_DISABLED : The field will be disabled and could not accept an input.
-     *                           - @b defaultValue : This is the value the selectbox shows when loaded. If @b multiselect is activated than
-     *                             an array with all default values could be set.
-     *                           - @b showContextDependentFirstEntry : If set to @b true the select box will get an additional first entry.
-     *                             If FIELD_REQUIRED is set than "Please choose" will be the first entry otherwise
-     *                             an empty entry will be added so you must not select something.
-     *                           - @b firstEntry : Here you can define a string that should be shown as firstEntry and will be the
-     *                             default value if no other value is set. This entry will only be added if @b showContextDependentFirstEntry
-     *                             is set to false!
-     *                           - @b multiselect : If set to @b true than the jQuery plugin Select2 will be used to create a selectbox
-     *                             where the user could select multiple values from the selectbox. Then an array will be
-     *                             created within the $_POST array.
-     *                           - @b maximumSelectionNumber : If @b multiselect is enabled then you can configure the maximum number
-     *                             of selections that could be done. If this limit is reached the user can't add another entry to the selectbox.
-     *                           - @b helpTextIdLabel : A unique text id from the translation xml files that should be shown
-     *                             e.g. SYS_ENTRY_MULTI_ORGA. If set a help icon will be shown after the control label where
-     *                             the user can see the text if he hover over the icon. If you need an additional parameter
-     *                             for the text you can add an array. The first entry must be the unique text id and the second
-     *                             entry will be a parameter of the text id.
-     *                           - @b helpTextIdInline : A unique text id from the translation xml files that should be shown
-     *                             e.g. SYS_ENTRY_MULTI_ORGA. If set the complete text will be shown after the form element.
-     *                             If you need an additional parameter for the text you can add an array. The first entry must
-     *                             be the unique text id and the second entry will be a parameter of the text id.
-     *                           - @b icon : An icon can be set. This will be placed in front of the label.
-     *                           - @b class : An additional css classname. The class @b admSelectbox
-     *                             is set as default and need not set with this parameter.
-     *
+     * @param string       $id       Id of the selectbox. This will also be the name of the selectbox.
+     * @param string       $label    The label of the selectbox.
+     * @param \Database    $database Object of the class Database. This should be the default global object @b $gDb.
+     * @param array|string $sql      Any SQL statement that return 2 columns. The first column will be the internal value of the
+     *                               selectbox item and will be submitted with the form. The second column represents the
+     *                               displayed value of the item. Each row of the result will be a new selectbox entry.
+     * @param array        $options (optional) An array with the following possible entries:
+     *                              - @b property : With this param you can set the following properties:
+     *                                + @b FIELD_DEFAULT  : The field can accept an input.
+     *                                + @b FIELD_REQUIRED : The field will be marked as a mandatory field where the user must insert a value.
+     *                                + @b FIELD_DISABLED : The field will be disabled and could not accept an input.
+     *                              - @b defaultValue : This is the value the selectbox shows when loaded. If @b multiselect is activated than
+     *                                an array with all default values could be set.
+     *                              - @b showContextDependentFirstEntry : If set to @b true the select box will get an additional first entry.
+     *                                If FIELD_REQUIRED is set than "Please choose" will be the first entry otherwise
+     *                                an empty entry will be added so you must not select something.
+     *                              - @b firstEntry : Here you can define a string that should be shown as firstEntry and will be the
+     *                                default value if no other value is set. This entry will only be added if @b showContextDependentFirstEntry
+     *                                is set to false!
+     *                              - @b multiselect : If set to @b true than the jQuery plugin Select2 will be used to create a selectbox
+     *                                where the user could select multiple values from the selectbox. Then an array will be
+     *                                created within the $_POST array.
+     *                              - @b maximumSelectionNumber : If @b multiselect is enabled then you can configure the maximum number
+     *                                of selections that could be done. If this limit is reached the user can't add another entry to the selectbox.
+     *                              - @b helpTextIdLabel : A unique text id from the translation xml files that should be shown
+     *                                e.g. SYS_ENTRY_MULTI_ORGA. If set a help icon will be shown after the control label where
+     *                                the user can see the text if he hover over the icon. If you need an additional parameter
+     *                                for the text you can add an array. The first entry must be the unique text id and the second
+     *                                entry will be a parameter of the text id.
+     *                              - @b helpTextIdInline : A unique text id from the translation xml files that should be shown
+     *                                e.g. SYS_ENTRY_MULTI_ORGA. If set the complete text will be shown after the form element.
+     *                                If you need an additional parameter for the text you can add an array. The first entry must
+     *                                be the unique text id and the second entry will be a parameter of the text id.
+     *                              - @b icon : An icon can be set. This will be placed in front of the label.
+     *                              - @b class : An additional css classname. The class @b admSelectbox
+     *                                is set as default and need not set with this parameter.
      * @par Examples
      * @code // create a selectbox with all profile fields of a specific category
      * $sql = 'SELECT usf_id, usf_name FROM '.TBL_USER_FIELDS.' WHERE usf_cat_id = 4711'
@@ -1362,7 +1434,14 @@ class HtmlForm extends HtmlFormBasic
         $selectBoxEntries = array();
 
         // execute the sql statement
-        $pdoStatement = $database->query($sql);
+        if (is_array($sql))
+        {
+            $pdoStatement = $database->queryPrepared($sql['query'], $sql['params']);
+        }
+        else
+        {
+            $pdoStatement = $database->query($sql);
+        }
 
         // create array from sql result
         while ($row = $pdoStatement->fetch())
@@ -1512,8 +1591,8 @@ class HtmlForm extends HtmlFormBasic
         );
         $optionsAll = array_replace($optionsDefault, $options);
 
-        $sqlTables      = '';
-        $sqlCondidtions = '';
+        $sqlTables     = '';
+        $sqlConditions = '';
 
         // create sql conditions if category must have child elements
         if ($selectBoxModus === 'FILTER_CATEGORIES')
@@ -1531,7 +1610,7 @@ class HtmlForm extends HtmlFormBasic
                 case 'ROL':
                     // don't show system categories
                     $sqlTables = ' INNER JOIN ' . TBL_ROLES . ' ON cat_id = rol_cat_id';
-                    $sqlCondidtions = ' AND rol_visible = 1 ';
+                    $sqlConditions = ' AND cat_name_intern <> \'EVENTS\' ';
                     break;
                 case 'INF':
                     $sqlTables = ' INNER JOIN ' . TBL_INVENT_FIELDS . ' ON cat_id = inf_cat_id ';
@@ -1541,24 +1620,24 @@ class HtmlForm extends HtmlFormBasic
 
         if (!$optionsAll['showSystemCategory'])
         {
-            $sqlCondidtions .= ' AND cat_system = 0 ';
+            $sqlConditions .= ' AND cat_system = 0 ';
         }
 
         if (!$gValidLogin)
         {
-            $sqlCondidtions .= ' AND cat_hidden = 0 ';
+            $sqlConditions .= ' AND cat_hidden = 0 ';
         }
 
         // the sql statement which returns all found categories
         $sql = 'SELECT DISTINCT cat_id, cat_name, cat_default, cat_sequence
                   FROM ' . TBL_CATEGORIES . '
-                       '.$sqlTables.'
-                 WHERE (  cat_org_id = ' . $gCurrentOrganization->getValue('org_id') . '
+                       ' . $sqlTables . '
+                 WHERE (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                        OR cat_org_id IS NULL )
-                   AND cat_type = \'' . $categoryType . '\'
-                       ' . $sqlCondidtions . '
+                   AND cat_type = ? -- $categoryType
+                       ' . $sqlConditions . '
               ORDER BY cat_sequence ASC';
-        $pdoStatement = $database->query($sql);
+        $pdoStatement = $database->queryPrepared($sql, array($gCurrentOrganization->getValue('org_id'), $categoryType));
         $countCategories = $pdoStatement->rowCount();
 
         // if no or only one category exist and in filter modus, than don't show category
@@ -1639,39 +1718,12 @@ class HtmlForm extends HtmlFormBasic
     }
 
     /**
-     * Add a new button with a custom text to the form. This button could have
-     * an icon in front of the text. Different to addButton this method adds an
-     * additional @b div around the button and the type of the button is @b submit.
-     * @param string $id      Id of the button. This will also be the name of the button.
-     * @param string $text    Text of the button
-     * @param array  $options (optional) An array with the following possible entries:
-     *                        - @b icon : Optional parameter. Path and filename of an icon.
-     *                          If set a icon will be shown in front of the text.
-     *                        - @b link : If set a javascript click event with a page load to this link
-     *                          will be attached to the button.
-     *                        - @b onClickText : A text that will be shown after a click on this button
-     *                          until the next page is loaded. The button will be disabled after click.
-     *                        - @b class : Optional an additional css classname. The class @b admButton
-     *                          is set as default and need not set with this parameter.
-     *                        - @b type : If set to true this button get the type @b submit. This will
-     *                          be the default.
+     * Open a bootstrap btn-group if the form need more than one button.
      */
-    public function addSubmitButton($id, $text, array $options = array())
+    public function openButtonGroup()
     {
-        // create array with all options
-        $optionsDefault = array('icon' => '', 'link' => '', 'onClickText' => '', 'class' => '', 'type' => 'submit');
-        $optionsAll     = array_replace($optionsDefault, $options);
-
-        // add default css class
-        $optionsAll['class'] .= ' btn-primary';
-
-        // now add button to form
-        $this->addButton($id, $text, $optionsAll);
-
-        if (!$this->buttonGroupOpen)
-        {
-            $this->addHtml('<div class="form-alert" style="display: none;">&nbsp;</div>');
-        }
+        $this->buttonGroupOpen = true;
+        $this->addHtml('<div class="btn-group" role="group">');
     }
 
     /**
@@ -1741,23 +1793,6 @@ class HtmlForm extends HtmlFormBasic
         {
             $this->addHtml('</div></div>');
         }
-    }
-
-    /**
-     * Close all html elements of a groupbox that was created before.
-     */
-    public function closeGroupBox()
-    {
-        $this->addHtml('</div></div>');
-    }
-
-    /**
-     * Open a bootstrap btn-group if the form need more than one button.
-     */
-    public function openButtonGroup()
-    {
-        $this->buttonGroupOpen = true;
-        $this->addHtml('<div class="btn-group" role="group">');
     }
 
     /**
@@ -1866,6 +1901,14 @@ class HtmlForm extends HtmlFormBasic
             $this->addHtml('<div class="panel-heading">' . $headline . '</div>');
         }
         $this->addHtml('<div class="panel-body">');
+    }
+
+    /**
+     * Close all html elements of a groupbox that was created before.
+     */
+    public function closeGroupBox()
+    {
+        $this->addHtml('</div></div>');
     }
 
     /**

@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Create and edit categories
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -24,8 +24,8 @@
  *
  ****************************************************************************/
 
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getCatId = admFuncVariableIsValid($_GET, 'cat_id', 'int');
@@ -117,7 +117,7 @@ if($getCatId > 0)
 
     // Pruefung, ob die Kategorie zur aktuellen Organisation gehoert bzw. allen verfuegbar ist
     if($category->getValue('cat_org_id') > 0
-    && $category->getValue('cat_org_id') != $gCurrentOrganization->getValue('org_id'))
+    && (int) $category->getValue('cat_org_id') !== (int) $gCurrentOrganization->getValue('org_id'))
     {
         $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
         // => EXIT
@@ -166,7 +166,7 @@ if($getType === 'USF')
         $organizations .= implode(',<br />- ', $gCurrentOrganization->getOrganizationsInRelationship(true, true, true));
 
         $checked = false;
-        if($category->getValue('cat_org_id') == 0)
+        if((int) $category->getValue('cat_org_id') === 0)
         {
             $checked = true;
         }
@@ -177,13 +177,16 @@ if($getType === 'USF')
 }
 else
 {
-    $form->addCheckbox('cat_hidden', $gL10n->get('SYS_VISIBLE_TO_USERS', $addButtonText), $category->getValue('cat_hidden'),
+    $form->addCheckbox('cat_hidden', $gL10n->get('SYS_VISIBLE_TO_USERS', $addButtonText), (bool) $category->getValue('cat_hidden'),
                        array('icon' => 'user_key.png'));
 }
-$form->addCheckbox('cat_default', $gL10n->get('CAT_DEFAULT_VAR', $addButtonText), $category->getValue('cat_default'),
+$form->addCheckbox('cat_default', $gL10n->get('CAT_DEFAULT_VAR', $addButtonText), (bool) $category->getValue('cat_default'),
                    array('icon' => 'star.png'));
 $form->addSubmitButton('btn_save', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png'));
-$form->addHtml(admFuncShowCreateChangeInfoById($category->getValue('cat_usr_id_create'), $category->getValue('cat_timestamp_create'), $category->getValue('cat_usr_id_change'), $category->getValue('cat_timestamp_change')));
+$form->addHtml(admFuncShowCreateChangeInfoById(
+    (int) $category->getValue('cat_usr_id_create'), $category->getValue('cat_timestamp_create'),
+    (int) $category->getValue('cat_usr_id_change'), $category->getValue('cat_timestamp_change')
+));
 
 // add form to html page and show page
 $page->addHtml($form->show(false));

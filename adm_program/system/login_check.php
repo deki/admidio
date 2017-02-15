@@ -3,12 +3,12 @@
  ***********************************************************************************************
  * Validate login data, create cookie and sign in the user to Admidio
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
-require_once('common.php');
+require_once(__DIR__ . '/common.php');
 
 // Initialize parameters
 $bAutoLogin = false;
@@ -70,8 +70,8 @@ if($password === '')
 // Search for username
 $sql = 'SELECT usr_id
           FROM '.TBL_USERS.'
-         WHERE UPPER(usr_login_name) = UPPER(\''.$loginname.'\')';
-$userStatement = $gDb->query($sql);
+         WHERE UPPER(usr_login_name) = UPPER(?)';
+$userStatement = $gDb->queryPrepared($sql, array($loginname));
 
 if ($userStatement->rowCount() === 0)
 {

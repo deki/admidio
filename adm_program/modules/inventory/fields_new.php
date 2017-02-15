@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Create and edit profile fields
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -12,8 +12,8 @@
  * inf_id : profile field id that should be edited
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getInfId = admFuncVariableIsValid($_GET, 'inf_id', 'int');
@@ -55,8 +55,8 @@ if($getInfId > 0)
     }
 
     // Pruefung, ob das Feld zur aktuellen Organisation gehoert
-    if($itemField->getValue('cat_org_id') >  0
-    && $itemField->getValue('cat_org_id') != $gCurrentOrganization->getValue('org_id'))
+    if($itemField->getValue('cat_org_id') > 0
+    && (int) $itemField->getValue('cat_org_id') !== (int) $gCurrentOrganization->getValue('org_id'))
     {
         $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
         // => EXIT
@@ -91,7 +91,7 @@ $page = new HtmlPage($headline);
 
 $page->addJavascript('
     function setValueList() {
-        if($("#inf_type").val() === "DROPDOWN" || $("#inf_type").val() === "RADIO_BUTTON") {
+        if ($("#inf_type").val() === "DROPDOWN" || $("#inf_type").val() === "RADIO_BUTTON") {
             $("#inf_value_list_group").show("slow");
             $("#inf_value_list").attr("required", "required");
         } else {
@@ -159,16 +159,19 @@ $form->openGroupBox('gb_presentation', $gL10n->get('SYS_PRESENTATION'));
     $form->addMultilineTextInput('inf_value_list', $gL10n->get('ORG_VALUE_LIST'), $itemField->getValue('inf_value_list', 'database'), 6, array('property' => FIELD_REQUIRED, 'helpTextIdLabel' => 'ORG_VALUE_LIST_DESC'));
 $form->closeGroupBox();
 $form->openGroupBox('gb_authorization', $gL10n->get('SYS_AUTHORIZATION'));
-    $form->addCheckbox('inf_hidden', $gL10n->get('ORG_FIELD_NOT_HIDDEN'), $itemField->getValue('inf_hidden'), array('property' => FIELD_DEFAULT, 'helpTextIdLabel' => 'ORG_FIELD_HIDDEN_DESC', 'icon' => 'eye.png'));
-    $form->addCheckbox('inf_disabled', $gL10n->get('ORG_FIELD_DISABLED', $gL10n->get('ROL_RIGHT_EDIT_USER')), $itemField->getValue('inf_disabled'), array('property' => FIELD_DEFAULT, 'helpTextIdLabel' => 'ORG_FIELD_DISABLED_DESC', 'icon' => 'textfield_key.png'));
-    $form->addCheckbox('inf_mandatory', $gL10n->get('ORG_FIELD_REQUIRED'), $itemField->getValue('inf_mandatory'), array('property' => FIELD_DEFAULT, 'helpTextIdLabel' => 'ORG_FIELD_REQUIRED_DESC', 'icon' => 'asterisk_yellow.png'));
+    $form->addCheckbox('inf_hidden', $gL10n->get('ORG_FIELD_NOT_HIDDEN'), (bool) $itemField->getValue('inf_hidden'), array('property' => FIELD_DEFAULT, 'helpTextIdLabel' => 'ORG_FIELD_HIDDEN_DESC', 'icon' => 'eye.png'));
+    $form->addCheckbox('inf_disabled', $gL10n->get('ORG_FIELD_DISABLED', $gL10n->get('ROL_RIGHT_EDIT_USER')), (bool) $itemField->getValue('inf_disabled'), array('property' => FIELD_DEFAULT, 'helpTextIdLabel' => 'ORG_FIELD_DISABLED_DESC', 'icon' => 'textfield_key.png'));
+    $form->addCheckbox('inf_mandatory', $gL10n->get('ORG_FIELD_REQUIRED'), (bool) $itemField->getValue('inf_mandatory'), array('property' => FIELD_DEFAULT, 'helpTextIdLabel' => 'ORG_FIELD_REQUIRED_DESC', 'icon' => 'asterisk_yellow.png'));
 $form->closeGroupBox();
 $form->openGroupBox('gb_description', $gL10n->get('SYS_DESCRIPTION'), 'admidio-panel-editor');
     $form->addEditor('inf_description', null, $itemField->getValue('inf_description'), array('property' => FIELD_DEFAULT, 'toolbar' => 'AdmidioDefault', 'height' => '200px'));
 $form->closeGroupBox();
 
 $form->addSubmitButton('btn_save', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png'));
-$form->addHtml(admFuncShowCreateChangeInfoById($itemField->getValue('inf_usr_id_create'), $itemField->getValue('inf_timestamp_create'), $itemField->getValue('inf_usr_id_change'), $itemField->getValue('inf_timestamp_change')));
+$form->addHtml(admFuncShowCreateChangeInfoById(
+    (int) $itemField->getValue('inf_usr_id_create'), $itemField->getValue('inf_timestamp_create'),
+    (int) $itemField->getValue('inf_usr_id_change'), $itemField->getValue('inf_timestamp_change')
+));
 
 // add form to html page and show page
 $page->addHtml($form->show(false));

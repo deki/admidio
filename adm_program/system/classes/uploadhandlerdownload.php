@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -28,7 +28,7 @@ class UploadHandlerDownload extends UploadHandler
      * Override the default method to handle the specific things of the download module and
      * update the database after file was successful uploaded.
      * This method has the same parameters as the default.
-     * @param string $uploaded_file
+     * @param string $uploadedFile
      * @param string $name
      * @param int    $size
      * @param        $type
@@ -37,11 +37,11 @@ class UploadHandlerDownload extends UploadHandler
      * @param        $content_range
      * @return \stdClass
      */
-    protected function handle_file_upload($uploaded_file, $name, $size, $type, $error, $index = null, $content_range = null)
+    protected function handle_file_upload($uploadedFile, $name, $size, $type, $error, $index = null, $content_range = null)
     {
         global $gPreferences, $gL10n, $gDb, $getId, $gCurrentOrganization, $gCurrentUser;
 
-        $file = parent::handle_file_upload($uploaded_file, $name, $size, $type, $error, $index, $content_range);
+        $file = parent::handle_file_upload($uploadedFile, $name, $size, $type, $error, $index, $content_range);
 
         if(!isset($file->error))
         {
@@ -71,7 +71,7 @@ class UploadHandlerDownload extends UploadHandler
                 // Benachrichtigungs-Email für neue Einträge
                 $message = $gL10n->get('DOW_EMAIL_NOTIFICATION_MESSAGE', $gCurrentOrganization->getValue('org_longname'), $file->name, $gCurrentUser->getValue('FIRST_NAME').' '.$gCurrentUser->getValue('LAST_NAME'), date($gPreferences['system_date'], time()));
                 $notification = new Email();
-                $notification->adminNotfication($gL10n->get('DOW_EMAIL_NOTIFICATION_TITLE'), $message, $gCurrentUser->getValue('FIRST_NAME').' '.$gCurrentUser->getValue('LAST_NAME'), $gCurrentUser->getValue('EMAIL'));
+                $notification->adminNotification($gL10n->get('DOW_EMAIL_NOTIFICATION_TITLE'), $message, $gCurrentUser->getValue('FIRST_NAME').' '.$gCurrentUser->getValue('LAST_NAME'), $gCurrentUser->getValue('EMAIL'));
             }
             catch(AdmException $e)
             {

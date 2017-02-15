@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -85,7 +85,7 @@ class InventoryFields
     {
         foreach($this->mInventoryFields as $field)
         {
-            if($field->getValue('inf_id') == $fieldId)
+            if((int) $field->getValue('inf_id') === $fieldId)
             {
                 return $field->getValue($column, $format);
             }
@@ -253,7 +253,7 @@ class InventoryFields
                 // replace a variable in url with user value
                 if(strpos($infUrl, '#user_content#') !== false)
                 {
-                    $htmlValue = preg_replace('/#user_content#/', $value, $htmlValue);
+                    $htmlValue = str_replace('#user_content#', $value, $htmlValue);
                 }
             }
             $value = $htmlValue;
@@ -369,9 +369,9 @@ class InventoryFields
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = inf_cat_id
                  WHERE (  cat_org_id IS NULL
-                       OR cat_org_id  = '.$organizationId.' )
+                       OR cat_org_id = ? ) -- $organizationId
               ORDER BY cat_sequence ASC, inf_sequence ASC';
-        $usfStatement = $this->mDb->query($sql);
+        $usfStatement = $this->mDb->queryPrepared($sql, array($organizationId));
 
         while($row = $usfStatement->fetch())
         {
@@ -408,8 +408,8 @@ class InventoryFields
                       FROM '.TBL_INVENT_DATA.'
                 INNER JOIN '.TBL_INVENT_FIELDS.'
                         ON inf_id = ind_inf_id
-                     WHERE ind_itm_id = '.$itemId;
-            $usdStatement = $this->mDb->query($sql);
+                     WHERE ind_itm_id = ? -- $itemId';
+            $usdStatement = $this->mDb->queryPrepared($sql, array($itemId));
 
             while($row = $usdStatement->fetch())
             {
@@ -433,7 +433,7 @@ class InventoryFields
         foreach($this->mInventoryData as $value)
         {
             // if new user than set user id
-            if($this->mItemId == 0)
+            if($this->mItemId === 0)
             {
                 $value->setValue('ind_itm_id', $itemId);
             }

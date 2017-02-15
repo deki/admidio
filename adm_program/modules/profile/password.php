@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Change password
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,8 +14,8 @@
  *           change : Change password in database
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 header('Content-type: text/html; charset=utf-8');
 
@@ -38,9 +38,10 @@ $currUserId = (int) $gCurrentUser->getValue('usr_id');
 
 // only the own password could be individual set.
 // Administrator could only send a generated password or set a password if no password was set before
-if(!isMember($getUserId)
+if((int) $gCurrentUser->getValue('usr_id') !== $getUserId
+&& (!isMember($getUserId)
 || (!$gCurrentUser->isAdministrator() && $currUserId !== $getUserId)
-|| ($gCurrentUser->isAdministrator() && $user->getValue('usr_password') !== '' && $user->getValue('EMAIL') === '' && $gPreferences['enable_system_mails'] == 1))
+|| ($gCurrentUser->isAdministrator() && $user->getValue('EMAIL') !== '' && $gPreferences['enable_system_mails'] == 1)))
 {
     $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
     // => EXIT
@@ -132,7 +133,7 @@ elseif($getMode === 'html')
 
     echo '<script type="text/javascript">
         $(function() {
-            $("body").on("shown.bs.modal", ".modal", function () {
+            $("body").on("shown.bs.modal", ".modal", function() {
                 $("#password_form:first *:input[type!=hidden]:first").focus();
 
                 $("#admidio-password-strength-minimum").css("margin-left", "calc(" + $("#admidio-password-strength").css("width") + " / 4 * '.$passwordStrengthLevel.')");
@@ -158,17 +159,17 @@ elseif($getMode === 'html')
                 event.preventDefault();
 
                 $.post(action, $(this).serialize(), function(data) {
-                    if(data === "success") {
+                    if (data === "success") {
                         passwordFormAlert.attr("class", "alert alert-success form-alert");
                         passwordFormAlert.html("<span class=\"glyphicon glyphicon-ok\"></span><strong>'.$gL10n->get('PRO_PASSWORD_CHANGED').'</strong>");
                         passwordFormAlert.fadeIn("slow");
-                        setTimeout(function () {
+                        setTimeout(function() {
                             $("#admidio_modal").modal("hide");
                         }, 2000);
                     } else {
                         passwordFormAlert.attr("class", "alert alert-danger form-alert");
                         passwordFormAlert.fadeIn();
-                        passwordFormAlert.html("<span class=\"glyphicon glyphicon-exclamation-sign\"></span>"+data);
+                        passwordFormAlert.html("<span class=\"glyphicon glyphicon-exclamation-sign\"></span>" + data);
                     }
                 });
             });

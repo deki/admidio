@@ -3,14 +3,14 @@
  ***********************************************************************************************
  * Overview and maintenance of all profile fields
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // only users with the right to edit inventory could use this script
 if (!$gCurrentUser->editInventory())
@@ -30,8 +30,17 @@ unset($_SESSION['fields_request']);
 $page = new HtmlPage($headline);
 $page->enableModal();
 
-$page->addJavascript('$(".admidio-group-heading").click(function() { showHideBlock($(this).attr("id")); });', true);
 $page->addJavascript('
+    $(".admidio-group-heading").click(function() {
+        showHideBlock($(this).attr("id"));
+    });',
+    true
+);
+$page->addJavascript('
+    /**
+     * @param {string} direction
+     * @param {int}    usfID
+     */
     function moveCategory(direction, usfID) {
         var actRow = document.getElementById("row_usf_" + usfID);
         var childs = actRow.parentNode.childNodes;
@@ -42,41 +51,42 @@ $page->addJavascript('
         var secondSequence = 0;
 
         // erst einmal aktuelle Sequenz und vorherigen/naechsten Knoten ermitteln
-        for(i=0;i < childs.length; i++) {
-            if(childs[i].tagName === "TR") {
+        for (var i = 0; i < childs.length; i++) {
+            if (childs[i].tagName === "TR") {
                 actRowCount++;
-                if(actSequence > 0 && nextNode === null) {
+                if (actSequence > 0 && nextNode === null) {
                     nextNode = childs[i];
                 }
 
-                if(childs[i].id === "row_usf_" + usfID) {
+                if (childs[i].id === "row_usf_" + usfID) {
                     actSequence = actRowCount;
                 }
 
-                if(actSequence === 0) {
+                if (actSequence === 0) {
                     prevNode = childs[i];
                 }
             }
         }
 
         // entsprechende Werte zum Hoch- bzw. Runterverschieben ermitteln
-        if(direction === "up") {
-            if(prevNode != null) {
+        if (direction === "up") {
+            if (prevNode !== null) {
                 actRow.parentNode.insertBefore(actRow, prevNode);
                 secondSequence = actSequence - 1;
             }
         } else {
-            if(nextNode != null) {
+            if (nextNode !== null) {
                 actRow.parentNode.insertBefore(nextNode, actRow);
                 secondSequence = actSequence + 1;
             }
         }
 
-        if(secondSequence > 0) {
+        if (secondSequence > 0) {
             // Nun erst mal die neue Position von dem gewaehlten Feld aktualisieren
             $.get(gRootPath + "/adm_program/modules/inventory/fields_function.php?usf_id=" + usfID + "&mode=4&sequence=" + direction);
         }
-    }');
+    }
+');
 
 // get module menu
 $fieldsMenu = $page->getMenu();
@@ -96,10 +106,10 @@ $sql = 'SELECT *
     INNER JOIN '.TBL_CATEGORIES.'
             ON cat_id = inf_cat_id
          WHERE cat_type = \'INF\'
-           AND (  cat_org_id = '. $gCurrentOrganization->getValue('org_id'). '
+           AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                OR cat_org_id IS NULL )
       ORDER BY cat_sequence ASC, inf_sequence ASC';
-$statement = $gDb->query($sql);
+$statement = $gDb->queryPrepared($sql, array($gCurrentOrganization->getValue('org_id')));
 
 // Create table
 $table = new HtmlTable('tbl_profile_fields', $page, true);
@@ -132,18 +142,18 @@ while($row = $statement->fetch())
     $userField->clear();
     $userField->setArray($row);
 
-    if($categoryId != $userField->getValue('cat_id'))
+    if($categoryId !== (int) $userField->getValue('cat_id'))
     {
-        $block_id = 'admCategory'.$userField->getValue('inf_cat_id');
+        $blockId = 'admCategory'.$userField->getValue('inf_cat_id');
 
         $table->addTableBody();
         $table->addRow();
-        $table->addColumn('', array('class' => 'admidio-group-heading', 'id' => 'group_'.$block_id), 'td');
+        $table->addColumn('', array('class' => 'admidio-group-heading', 'id' => 'group_'.$blockId), 'td');
         $table->addAttribute('colspan', '8');
-        $table->addData('<span id="caret_'.$block_id.'" class="caret"></span>'.$userField->getValue('cat_name'));
-        $table->addTableBody('id', $block_id);
+        $table->addData('<span id="caret_'.$blockId.'" class="caret"></span>'.$userField->getValue('cat_name'));
+        $table->addTableBody('id', $blockId);
 
-        $categoryId = $userField->getValue('inf_cat_id');
+        $categoryId = (int) $userField->getValue('inf_cat_id');
     }
 
     // cut long text strings and provide tooltip
@@ -152,7 +162,7 @@ while($row = $statement->fetch())
         $description = substr($userField->getValue('inf_description', 'database'), 0, 22).'
             <a class="colorbox-dialog" data-html="true" data-toggle="tooltip" data-original-title="'.str_replace('"', '\'', $userField->getValue('inf_description')).'" href="'. ADMIDIO_URL. '/adm_program/system/msg_window.php?message_id=user_field_description&amp;message_var1='. $userField->getValue('inf_name_intern'). '&amp;inline=true">[..]</a>';
     }
-    elseif(strlen($userField->getValue('inf_description') == 0))
+    elseif($userField->getValue('inf_description') === '')
     {
         $description = '&nbsp;';
     }

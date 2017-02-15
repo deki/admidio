@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Create and edit dates
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -15,8 +15,8 @@
  * copy : true - The event of the dat_id will be copied and the base for this new event
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getDateId   = admFuncVariableIsValid($_GET, 'dat_id',   'int');
@@ -38,8 +38,8 @@ if(!$gCurrentUser->editDates())
 }
 
 // lokale Variablen der Uebergabevariablen initialisieren
-$dateRegistrationPossible = 0;
-$dateCurrentUserAssigned  = 0;
+$dateRegistrationPossible = false;
+$dateCurrentUserAssigned  = false;
 
 // set headline of the script
 if($getCopy)
@@ -80,13 +80,13 @@ if(isset($_SESSION['dates_request']))
     // check if a registration to this event is possible
     if(array_key_exists('date_registration_possible', $_SESSION['dates_request']))
     {
-        $dateRegistrationPossible = $_SESSION['dates_request']['date_registration_possible'];
+        $dateRegistrationPossible = (bool) $_SESSION['dates_request']['date_registration_possible'];
     }
 
     // check if current user is assigned to this date
     if(array_key_exists('date_current_user_assigned', $_SESSION['dates_request']))
     {
-        $dateCurrentUserAssigned = $_SESSION['dates_request']['date_current_user_assigned'];
+        $dateCurrentUserAssigned = (bool) $_SESSION['dates_request']['date_current_user_assigned'];
     }
 
     unset($_SESSION['dates_request']);
@@ -127,7 +127,7 @@ else
     // check if a registration to this event is possible
     if($date->getValue('dat_rol_id') > 0)
     {
-        $dateRegistrationPossible = 1;
+        $dateRegistrationPossible = true;
     }
     // check if current user is assigned to this date
     $dateCurrentUserAssigned = $gCurrentUser->isLeaderOfRole($date->getValue('dat_rol_id'));
@@ -149,7 +149,9 @@ $page = new HtmlPage($headline);
 
 $page->addJavascriptFile('adm_program/system/js/date-functions.js');
 $page->addJavascript('
-    // Funktion blendet Zeitfelder ein/aus
+    /**
+     * Funktion blendet Zeitfelder ein/aus
+     */
     function setAllDay() {
         if ($("#dat_all_day:checked").val() !== undefined) {
             $("#date_from_time").hide();
@@ -174,25 +176,28 @@ $page->addJavascript('
         }
     }
 
-    // Funktion belegt das Datum-bis entsprechend dem Datum-Von
+    /**
+     * Funktion belegt das Datum-bis entsprechend dem Datum-Von
+     */
     function setDateTo() {
         var dateFrom = Date.parseDate($("#date_from").val(), "'.$gPreferences['system_date'].'");
         var dateTo   = Date.parseDate($("#date_to").val(), "'.$gPreferences['system_date'].'");
 
-        if(dateFrom.getTime() > dateTo.getTime()) {
+        if (dateFrom.getTime() > dateTo.getTime()) {
             $("#date_to").val($("#date_from").val());
             $("#date_to").datepicker("update");
         }
     }
 
     function setLocationCountry() {
-        if($("#dat_location").val().length > 0) {
+        if ($("#dat_location").val().length > 0) {
             $("#dat_country_group").show();
             $("#dat_country").focus();
         } else {
             $("#dat_country_group").hide();
         }
-    }');
+    }
+');
 
 $page->addJavascript('
     var dateRoleID = '.$dateRoleID.';
@@ -201,24 +206,34 @@ $page->addJavascript('
     setDateParticipation();
     setLocationCountry();
 
-    $("#date_registration_possible").click(function() { setDateParticipation(); });
-    $("#dat_all_day").click(function() { setAllDay(); });
-    $("#dat_location").change(function() { setLocationCountry(); });
-    $("#date_from").change(function() { setDateTo(); });
+    $("#date_registration_possible").click(function() {
+        setDateParticipation();
+    });
+    $("#dat_all_day").click(function() {
+        setAllDay();
+    });
+    $("#dat_location").change(function() {
+        setLocationCountry();
+    });
+    $("#date_from").change(function() {
+        setDateTo();
+    });
 
     // if date participation should be removed than ask user
-    $("#btn_save").click(function (event) {
+    $("#btn_save").click(function(event) {
         event.preventDefault();
 
-        if(dateRoleID > 0 && $("#date_registration_possible").is(":checked") == false) {
+        if (dateRoleID > 0 && $("#date_registration_possible").is(":checked") === false) {
             var msg_result = confirm("'.$gL10n->get('DAT_REMOVE_APPLICATION').'");
-            if(msg_result) {
+            if (msg_result) {
                 $("#dates_edit_form").submit();
             }
         } else {
             $("#dates_edit_form").submit();
         }
-    });', true);
+    });',
+    true
+);
 
 // add back link to module menu
 $datesMenu = $page->getMenu();
@@ -233,9 +248,9 @@ $form->addInput('dat_headline', $gL10n->get('SYS_TITLE'), $date->getValue('dat_h
 // if a map link should be shown in the event then show help text and a field where the user could choose the country
 if($gPreferences['dates_show_map_link'] == true)
 {
-    $form->addInput('dat_location', $gL10n->get('DAT_LOCATION'), $date->getValue('dat_location'), array('maxLength' => 50, 'helpTextIdLabel' => 'DAT_LOCATION_LINK'));
+    $form->addInput('dat_location', $gL10n->get('DAT_LOCATION'), $date->getValue('dat_location'), array('maxLength' => 100, 'helpTextIdLabel' => 'DAT_LOCATION_LINK'));
 
-    if(strlen($date->getValue('dat_country')) === 0 && $getDateId === 0)
+    if($date->getValue('dat_country') === '' && $getDateId === 0)
     {
         $date->setValue('dat_country', $gPreferences['default_country']);
     }
@@ -243,7 +258,7 @@ if($gPreferences['dates_show_map_link'] == true)
 }
 else
 {
-    $form->addInput('dat_location', $gL10n->get('DAT_LOCATION'), $date->getValue('dat_location'), array('maxLength' => 50));
+    $form->addInput('dat_location', $gL10n->get('DAT_LOCATION'), $date->getValue('dat_location'), array('maxLength' => 100));
 }
 
 // if room selection is activated then show a selectbox with all rooms
@@ -261,12 +276,15 @@ if($gPreferences['dates_show_rooms'] == true)
                   FROM '.TBL_ROOMS.'
               ORDER BY room_name';
     }
-    $form->addSelectBoxFromSql('dat_room_id', $gL10n->get('SYS_ROOM'), $gDb, $sql, array('defaultValue' => $date->getValue('dat_room_id')));
+    $form->addSelectBoxFromSql(
+        'dat_room_id', $gL10n->get('SYS_ROOM'), $gDb, $sql,
+        array('defaultValue' => $date->getValue('dat_room_id'))
+    );
 }
 $form->closeGroupBox();
 
 $form->openGroupBox('gb_period_calendar', $gL10n->get('SYS_PERIOD').' & '.$gL10n->get('DAT_CALENDAR'));
-$form->addCheckbox('dat_all_day', $gL10n->get('DAT_ALL_DAY'), $date->getValue('dat_all_day'));
+$form->addCheckbox('dat_all_day', $gL10n->get('DAT_ALL_DAY'), (bool) $date->getValue('dat_all_day'));
 $form->addInput('date_from', $gL10n->get('SYS_START'), $date->getValue('dat_begin', $gPreferences['system_date'].' '.$gPreferences['system_time']), array('type' => 'datetime', 'property' => FIELD_REQUIRED));
 $form->addInput('date_to', $gL10n->get('SYS_END'), $date->getValue('dat_end', $gPreferences['system_date'].' '.$gPreferences['system_time']), array('type' => 'datetime', 'property' => FIELD_REQUIRED));
 $form->addSelectBoxForCategories('dat_cat_id', $gL10n->get('DAT_CALENDAR'), $gDb, 'DAT', 'EDIT_CATEGORIES',
@@ -276,22 +294,23 @@ $form->closeGroupBox();
 $form->openGroupBox('gb_visibility_registration', $gL10n->get('DAT_VISIBILITY').' & '.$gL10n->get('SYS_REGISTRATION'));
 // add a multiselectbox to the form where the user can choose all roles that should see this event
 // first read all relevant roles from database and create an array with them
-$sql = 'SELECT rol_id, rol_name, cat_name
-          FROM '.TBL_ROLES.'
-    INNER JOIN '.TBL_CATEGORIES.'
-            ON cat_id = rol_cat_id
-         WHERE rol_valid   = 1
-           AND rol_visible = 1
-           AND (  cat_org_id  = '. $gCurrentOrganization->getValue('org_id'). '
-               OR cat_org_id IS NULL )
-      ORDER BY cat_sequence, rol_name';
+$sqlData['query'] = 'SELECT rol_id, rol_name, cat_name
+                       FROM '.TBL_ROLES.'
+                 INNER JOIN '.TBL_CATEGORIES.'
+                         ON cat_id = rol_cat_id
+                      WHERE rol_valid   = 1
+                        AND cat_name_intern <> \'EVENTS\'
+                        AND (  cat_org_id  = ? -- $gCurrentOrganization->getValue(\'org_id\')
+                            OR cat_org_id IS NULL )
+                   ORDER BY cat_sequence, rol_name';
+$sqlData['params'] = array($gCurrentOrganization->getValue('org_id'));
 $firstEntry = array('0', $gL10n->get('SYS_ALL').' ('.$gL10n->get('SYS_ALSO_VISITORS').')', null);
-$form->addSelectBoxFromSql('date_roles', $gL10n->get('DAT_VISIBLE_TO'), $gDb, $sql, array('property'     => FIELD_REQUIRED,
-                                                                                          'defaultValue' => $dateRoles,
-                                                                                          'multiselect'  => true,
-                                                                                          'firstEntry'   => $firstEntry));
+$form->addSelectBoxFromSql(
+    'date_roles', $gL10n->get('DAT_VISIBLE_TO'), $gDb, $sqlData,
+    array('property' => FIELD_REQUIRED, 'defaultValue' => $dateRoles, 'multiselect' => true, 'firstEntry' => $firstEntry)
+);
 
-$form->addCheckbox('dat_highlight', $gL10n->get('DAT_HIGHLIGHT_DATE'), $date->getValue('dat_highlight'));
+$form->addCheckbox('dat_highlight', $gL10n->get('DAT_HIGHLIGHT_DATE'), (bool) $date->getValue('dat_highlight'));
 
 // if current organization has a parent organization or is child organizations then show option to set this announcement to global
 if($gCurrentOrganization->getValue('org_org_id_parent') > 0 || $gCurrentOrganization->hasChildOrganizations())
@@ -300,14 +319,14 @@ if($gCurrentOrganization->getValue('org_org_id_parent') > 0 || $gCurrentOrganiza
     $organizations = '- '.$gCurrentOrganization->getValue('org_longname').',<br />- ';
     $organizations .= implode(',<br />- ', $gCurrentOrganization->getOrganizationsInRelationship(true, true, true));
 
-    $form->addCheckbox('dat_global', $gL10n->get('SYS_ENTRY_MULTI_ORGA'), $date->getValue('dat_global'), array('helpTextIdLabel' => array('SYS_DATA_GLOBAL', $organizations)));
+    $form->addCheckbox('dat_global', $gL10n->get('SYS_ENTRY_MULTI_ORGA'), (bool) $date->getValue('dat_global'), array('helpTextIdLabel' => array('SYS_DATA_GLOBAL', $organizations)));
 }
 $form->addCheckbox('date_registration_possible', $gL10n->get('DAT_REGISTRATION_POSSIBLE'), $dateRegistrationPossible, array('helpTextIdLabel' => 'DAT_LOGIN_POSSIBLE'));
 $form->addCheckbox('date_current_user_assigned', $gL10n->get('DAT_PARTICIPATE_AT_DATE'), $dateCurrentUserAssigned, array('helpTextIdLabel' => 'DAT_PARTICIPATE_AT_DATE_DESC'));
 $form->addInput('dat_max_members', $gL10n->get('DAT_PARTICIPANTS_LIMIT'), $date->getValue('dat_max_members'),
-                array('type' => 'number', 'minNumber' => 0, 'maxNumber' => 99999, 'helpTextIdLabel' => 'DAT_MAX_MEMBERS'));
-$form->addCheckbox('date_right_list_view', $gL10n->get('DAT_RIGHT_VIEW_PARTICIPANTS'), $role->getValue('rol_this_list_view'));
-$form->addCheckbox('date_right_send_mail', $gL10n->get('DAT_RIGHT_MAIL_PARTICIPANTS'), $role->getValue('rol_mail_this_role'));
+                array('type' => 'number', 'minNumber' => 0, 'maxNumber' => 99999, 'step' => 1, 'helpTextIdLabel' => 'DAT_MAX_MEMBERS'));
+$form->addCheckbox('date_right_list_view', $gL10n->get('DAT_RIGHT_VIEW_PARTICIPANTS'), (bool) $role->getValue('rol_this_list_view'));
+$form->addCheckbox('date_right_send_mail', $gL10n->get('DAT_RIGHT_MAIL_PARTICIPANTS'), (bool) $role->getValue('rol_mail_this_role'));
 $form->closeGroupBox();
 
 $form->openGroupBox('gb_description', $gL10n->get('SYS_DESCRIPTION'), 'admidio-panel-editor');
@@ -315,7 +334,10 @@ $form->addEditor('dat_description', null, $date->getValue('dat_description'));
 $form->closeGroupBox();
 
 $form->addSubmitButton('btn_save', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png'));
-$form->addHtml(admFuncShowCreateChangeInfoById($date->getValue('dat_usr_id_create'), $date->getValue('dat_timestamp_create'), $date->getValue('dat_usr_id_change'), $date->getValue('dat_timestamp_change')));
+$form->addHtml(admFuncShowCreateChangeInfoById(
+    (int) $date->getValue('dat_usr_id_create'), $date->getValue('dat_timestamp_create'),
+    (int) $date->getValue('dat_usr_id_change'), $date->getValue('dat_timestamp_change')
+));
 
 // add form to html page and show page
 $page->addHtml($form->show(false));

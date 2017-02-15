@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Various functions for mylist module
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -16,8 +16,8 @@
  * name   : (optional) Name of the list that should be used to save list
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getListId = admFuncVariableIsValid($_GET, 'lst_id', 'int');
@@ -25,6 +25,13 @@ $getMode   = admFuncVariableIsValid($_GET, 'mode',   'int', array('requireValue'
 $getName   = admFuncVariableIsValid($_GET, 'name',   'string');
 
 $_SESSION['mylist_request'] = $_POST;
+
+// check if the module is enabled and disallow access if it's disabled
+if ($gPreferences['lists_enable_module'] != 1)
+{
+    $gMessage->show($gL10n->get('SYS_MODULE_DISABLED'));
+    // => EXIT
+}
 
 // Mindestens ein Feld sollte zugeordnet sein
 if(!isset($_POST['column1']) || strlen($_POST['column1']) === 0)
@@ -35,13 +42,13 @@ if(!isset($_POST['column1']) || strlen($_POST['column1']) === 0)
 
 // Rolle muss beim Anzeigen gefuellt sein
 if($getMode === 2
-&& (!isset($_POST['sel_roles_ids']) || $_POST['sel_roles_ids'] == 0 || !is_array($_POST['sel_roles_ids'])))
+&& (!isset($_POST['sel_roles_ids']) || (int) $_POST['sel_roles_ids'] === 0 || !is_array($_POST['sel_roles_ids'])))
 {
     $gMessage->show($gL10n->get('SYS_FIELD_EMPTY', $gL10n->get('SYS_ROLE')));
     // => EXIT
 }
 
-if(!isset($_POST['sel_show_members']))
+if(!isset($_POST['sel_show_members']) || !$gCurrentUser->hasRightViewFormerRolesMembers())
 {
     $_POST['sel_show_members'] = 0;
 }
@@ -63,7 +70,7 @@ if($getMode !== 2)
         $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
         // => EXIT
     }
-    elseif($list->getValue('lst_usr_id') != $gCurrentUser->getValue('usr_id')
+    elseif((int) $list->getValue('lst_usr_id') !== (int) $gCurrentUser->getValue('usr_id')
     && $list->getValue('lst_global') == 0 && $list->getValue('lst_id') > 0)
     {
         $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
@@ -135,6 +142,7 @@ elseif ($getMode === 3)
     catch(AdmException $e)
     {
         $e->showHtml();
+        // => EXIT
     }
 
     // go back to list configuration

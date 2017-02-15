@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Several functions for announcement module
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,8 +14,8 @@
  *           2 : Delete announcement
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // check if the module is enabled for use
 if ($gPreferences['enable_announcements_module'] == 0)
@@ -84,9 +84,9 @@ if($getMode === 1)
     }
 
     // Daten in Datenbank schreiben
-    $return_code = $announcement->save();
+    $returnValue = $announcement->save();
 
-    if($return_code === false)
+    if($returnValue === false)
     {
         $gMessage->show($gL10n->get('SYS_NO_RIGHTS'));
         // => EXIT
@@ -96,8 +96,16 @@ if($getMode === 1)
         if($getAnnId === 0)
         {
             $message = $gL10n->get('ANN_EMAIL_NOTIFICATION_MESSAGE', $gCurrentOrganization->getValue('org_longname'), $_POST['ann_headline'], $gCurrentUser->getValue('FIRST_NAME').' '.$gCurrentUser->getValue('LAST_NAME'), date($gPreferences['system_date'], time()));
-            $notification = new Email();
-            $notification->adminNotfication($gL10n->get('ANN_EMAIL_NOTIFICATION_TITLE'), $message, $gCurrentUser->getValue('FIRST_NAME').' '.$gCurrentUser->getValue('LAST_NAME'), $gCurrentUser->getValue('EMAIL'));
+
+            try
+            {
+                $notification = new Email();
+                $notification->adminNotification($gL10n->get('ANN_EMAIL_NOTIFICATION_TITLE'), $message, $gCurrentUser->getValue('FIRST_NAME').' '.$gCurrentUser->getValue('LAST_NAME'), $gCurrentUser->getValue('EMAIL'));
+            }
+            catch(AdmException $e)
+            {
+                $e->showHtml();
+            }
         }
     }
 
@@ -110,7 +118,7 @@ if($getMode === 1)
 elseif($getMode === 2)
 {
     // Ankuendigung loeschen, wenn diese zur aktuellen Orga gehoert
-    if($announcement->getValue('cat_org_id') == $gCurrentOrganization->getValue('org_id'))
+    if((int) $announcement->getValue('cat_org_id') === (int) $gCurrentOrganization->getValue('org_id'))
     {
         $announcement->delete();
 

@@ -3,12 +3,12 @@
  ***********************************************************************************************
  * Show registration dialog or the list with new registrations
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // check if module is active
 if($gPreferences['registration_mode'] == 0)
@@ -45,20 +45,25 @@ $sql = 'SELECT usr_id, usr_login_name, reg_timestamp, last_name.usd_value AS las
             ON usr_id = reg_usr_id
      LEFT JOIN '.TBL_USER_DATA.' AS last_name
             ON last_name.usd_usr_id = usr_id
-           AND last_name.usd_usf_id = '. $gProfileFields->getProperty('LAST_NAME', 'usf_id'). '
+           AND last_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'LAST_NAME\', \'usf_id\')
      LEFT JOIN '.TBL_USER_DATA.' AS first_name
             ON first_name.usd_usr_id = usr_id
-           AND first_name.usd_usf_id = '. $gProfileFields->getProperty('FIRST_NAME', 'usf_id'). '
+           AND first_name.usd_usf_id = ? -- $gProfileFields->getProperty(\'FIRST_NAME\', \'usf_id\')
      LEFT JOIN '.TBL_USER_DATA.' AS email
             ON email.usd_usr_id = usr_id
-           AND email.usd_usf_id = '. $gProfileFields->getProperty('EMAIL', 'usf_id'). '
+           AND email.usd_usf_id = ? -- $gProfileFields->getProperty(\'EMAIL\', \'usf_id\')
          WHERE usr_valid = 0
-           AND reg_org_id = '.$gCurrentOrganization->getValue('org_id').'
+           AND reg_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
       ORDER BY last_name, first_name';
-$usrStatement = $gDb->query($sql);
-$members_found = $usrStatement->rowCount();
+$queryParams = array(
+    $gProfileFields->getProperty('LAST_NAME', 'usf_id'),
+    $gProfileFields->getProperty('FIRST_NAME', 'usf_id'),
+    $gProfileFields->getProperty('EMAIL', 'usf_id'),
+    $gCurrentOrganization->getValue('org_id')
+);
+$usrStatement = $gDb->queryPrepared($sql, $queryParams);
 
-if ($members_found === 0)
+if ($usrStatement->rowCount() === 0)
 {
     $gMessage->setForwardUrl($gHomepage);
     $gMessage->show($gL10n->get('NWU_NO_REGISTRATIONS'), $gL10n->get('SYS_REGISTRATION'));
@@ -115,7 +120,7 @@ while($row = $usrStatement->fetch())
         $row['usr_login_name'],
         $mailLink,
         '<a class="admidio-icon-link" href="'.ADMIDIO_URL.FOLDER_MODULES.'/registration/registration_assign.php?new_user_id='.$row['usr_id'].'"><img
-                            src="'. THEME_URL. '/icons/new_registrations.png" alt="'.$gL10n->get('NWU_ASSIGN_REGISTRATION').'" title="'.$gL10n->get('NWU_ASSIGN_REGISTRATION').'" /></a>
+            src="'. THEME_URL. '/icons/new_registrations.png" alt="'.$gL10n->get('NWU_ASSIGN_REGISTRATION').'" title="'.$gL10n->get('NWU_ASSIGN_REGISTRATION').'" /></a>
         <a class="admidio-icon-link" data-toggle="modal" data-target="#admidio_modal"
             href="'.ADMIDIO_URL.'/adm_program/system/popup_message.php?type=nwu&amp;element_id=row_user_'.
             $row['usr_id'].'&amp;name='.urlencode($row['first_name'].' '.$row['last_name']).'&amp;database_id='.$row['usr_id'].'"><img

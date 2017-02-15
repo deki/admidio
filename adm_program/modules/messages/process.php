@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * PHP process for the Admidio CHAT
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,7 +14,7 @@
  * state     - gives the number of entries in the list that the user can see
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // check for valid login
 if (!$gValidLogin)
@@ -40,12 +40,12 @@ $log = array();
 // open some additonal functions for messages
 $moduleMessages = new ModuleMessages();
 // find ID of the admidio Chat
-$msg_id = $moduleMessages->msgGetChatId();
+$msgId = $moduleMessages->msgGetChatId();
 
 $sql = 'SELECT MAX(msc_part_id) AS max_id
           FROM '.TBL_MESSAGES_CONTENT.'
-         WHERE msc_msg_id = \''.$msg_id.'\'';
-$pdoStatement = $gDb->query($sql);
+         WHERE msc_msg_id = ?';
+$pdoStatement = $gDb->queryPrepared($sql, array($msgId));
 $msgId = $pdoStatement->fetchColumn();
 if(!$msgId)
 {
@@ -65,13 +65,14 @@ switch($postFunction)
             $log['test'] = '100';
 
             $sql = 'DELETE FROM '.TBL_MESSAGES_CONTENT.'
-                     WHERE msc_msg_id = \''.$msg_id.'\' AND msc_part_id <= 50';
-            $gDb->query($sql);
+                     WHERE msc_msg_id = ?
+                       AND msc_part_id <= 50';
+            $gDb->queryPrepared($sql, array($msgId));
 
             $sql = 'UPDATE '.TBL_MESSAGES_CONTENT.'
                        SET msc_part_id = msc_part_id - 50
-                     WHERE msc_msg_id = \''.$msg_id.'\'';
-            $gDb->query($sql);
+                     WHERE msc_msg_id = ?';
+            $gDb->queryPrepared($sql, array($msgId));
 
             $postLines -= 50;
             $msgId -= 50;
@@ -88,11 +89,11 @@ switch($postFunction)
 
             $sql = 'SELECT msc_part_id, msc_usr_id, msc_message, msc_timestamp
                       FROM '.TBL_MESSAGES_CONTENT.'
-                     WHERE msc_msg_id  = \''.$msg_id.'\'
-                       AND msc_part_id > '.$postLines. '
+                     WHERE msc_msg_id  = ? -- $msgId
+                       AND msc_part_id > ? -- $postLines
                   ORDER BY msc_part_id';
 
-            $statement = $gDb->query($sql);
+            $statement = $gDb->queryPrepared($sql, array($msgId, $postLines));
             while($row = $statement->fetch())
             {
                 $user = new User($gDb, $gProfileFields, $row['msc_usr_id']);
@@ -108,10 +109,10 @@ switch($postFunction)
     case 'send':
         if($postMessage !== "\n")
         {
-            $reg_exUrl = '/^(http|ftp)s?\:\/\/[\da-zA-Z\-\.]+\.[a-zA-Z]{2,6}(\/\S*)?/';
-            if(preg_match($reg_exUrl, $postMessage, $url))
+            $regexUrl = '/^(http|ftp)s?\:\/\/[\da-zA-Z\-\.]+\.[a-zA-Z]{2,6}(\/\S*)?/';
+            if(preg_match($regexUrl, $postMessage, $url))
             {
-                $postMessage = preg_replace($reg_exUrl, '<a href="'.$url[0].'" target="_blank">'.$url[0].'</a>', $postMessage);
+                $postMessage = preg_replace($regexUrl, '<a href="'.$url[0].'" target="_blank">'.$url[0].'</a>', $postMessage);
             }
         }
 
@@ -119,22 +120,23 @@ switch($postFunction)
         {
             $sql = 'INSERT INTO '. TBL_MESSAGES. ' (msg_type, msg_subject, msg_usr_id_sender, msg_usr_id_receiver, msg_timestamp, msg_read)
                     VALUES (\'CHAT\', \'DUMMY\', \'1\', \''.$msgId.'\', CURRENT_TIMESTAMP, \'0\')';
-            $gDb->query($sql);
-            $msg_id = $moduleMessages->msgGetChatId();
+            $gDb->query($sql); // TODO add more params
+            $msgId = $moduleMessages->msgGetChatId();
         }
 
         ++$msgId;
 
         $sql = 'INSERT INTO '. TBL_MESSAGES_CONTENT. ' (msc_msg_id, msc_part_id, msc_usr_id, msc_message, msc_timestamp)
-                VALUES (\''.$msg_id.'\', \''.$msgId.'\', \''.$gCurrentUser->getValue('usr_id').'\', \''.$postMessage.'\', CURRENT_TIMESTAMP)';
+                VALUES (\''.$msgId.'\', \''.$msgId.'\', \''.$gCurrentUser->getValue('usr_id').'\', \''.$postMessage.'\', CURRENT_TIMESTAMP)';
 
-        $gDb->query($sql);
+        $gDb->query($sql); // TODO add more params
         $log['state'] = $msgId;
         break;
 
     case 'delete':
-        $sql = 'DELETE FROM '.TBL_MESSAGES_CONTENT.' WHERE msc_msg_id = \''.$msg_id.'\'';
-        $gDb->query($sql);
+        $sql = 'DELETE FROM '.TBL_MESSAGES_CONTENT.'
+                 WHERE msc_msg_id = ?';
+        $gDb->queryPrepared($sql, array($msgId));
         break;
 }
 

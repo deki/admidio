@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Various common functions
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -83,14 +83,14 @@ function hasRole($roleName, $userId = 0)
                 ON rol_id = mem_rol_id
         INNER JOIN '.TBL_CATEGORIES.'
                 ON cat_id = rol_cat_id
-             WHERE mem_usr_id = '.$userId.'
-               AND mem_begin <= \''.DATE_NOW.'\'
-               AND mem_end    > \''.DATE_NOW.'\'
-               AND rol_name   = \''.$roleName.'\'
+             WHERE mem_usr_id = ? -- $userId
+               AND mem_begin <= ? -- DATE_NOW
+               AND mem_end    > ? -- DATE_NOW
+               AND rol_name   = ? -- $roleName
                AND rol_valid  = 1
-               AND (  cat_org_id = '.$gCurrentOrganization->getValue('org_id').'
+               AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                    OR cat_org_id IS NULL )';
-    $statement = $gDb->query($sql);
+    $statement = $gDb->queryPrepared($sql, array($userId, DATE_NOW, DATE_NOW, $roleName, $gCurrentOrganization->getValue('org_id')));
 
     return $statement->rowCount() === 1;
 }
@@ -112,13 +112,13 @@ function isMember($userId)
                     ON rol_id = mem_rol_id
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = rol_cat_id
-                 WHERE mem_usr_id = '.$userId.'
-                   AND mem_begin <= \''.DATE_NOW.'\'
-                   AND mem_end    > \''.DATE_NOW.'\'
+                 WHERE mem_usr_id = ? -- $userId
+                   AND mem_begin <= ? -- DATE_NOW
+                   AND mem_end    > ? -- DATE_NOW
                    AND rol_valid  = 1
-                   AND (  cat_org_id = '.$gCurrentOrganization->getValue('org_id').'
+                   AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                        OR cat_org_id IS NULL )';
-        $statement = $gDb->query($sql);
+        $statement = $gDb->queryPrepared($sql, array($userId, DATE_NOW, DATE_NOW, $gCurrentOrganization->getValue('org_id')));
 
         if ($statement->fetchColumn() > 0)
         {
@@ -148,18 +148,20 @@ function isGroupLeader($userId, $roleId = 0)
                     ON rol_id = mem_rol_id
             INNER JOIN '.TBL_CATEGORIES.'
                     ON cat_id = rol_cat_id
-                 WHERE mem_usr_id = '.$userId.'
-                   AND mem_begin <= \''.DATE_NOW.'\'
-                   AND mem_end    > \''.DATE_NOW.'\'
+                 WHERE mem_usr_id = ? -- $userId
+                   AND mem_begin <= ? -- DATE_NOW
+                   AND mem_end    > ? -- DATE_NOW
                    AND mem_leader = 1
                    AND rol_valid  = 1
-                   AND (  cat_org_id = '.$gCurrentOrganization->getValue('org_id').'
+                   AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
                        OR cat_org_id IS NULL )';
+        $queryParams = array($userId, DATE_NOW, DATE_NOW, $gCurrentOrganization->getValue('org_id'));
         if ($roleId > 0)
         {
-            $sql .= ' AND mem_rol_id = '.$roleId;
+            $sql .= ' AND mem_rol_id = ? -- $roleId';
+            $queryParams[] = $roleId;
         }
-        $statement = $gDb->query($sql);
+        $statement = $gDb->queryPrepared($sql, $queryParams);
 
         if ($statement->rowCount() > 0)
         {
@@ -264,20 +266,22 @@ function admFuncGeneratePagination($baseUrl, $itemsCount, $itemsPerPage, $pageSt
 
         if ($totalPagesCount > 3)
         {
+            $disabledLink = '<li class="disabled"><a>...</a></li>';
+
             if ($onPage > 1 && $onPage < $totalPagesCount)
             {
-                $pageNavigationString .= ($onPage > 5) ? ' ... ' : '&nbsp;&nbsp;';
+                $pageNavigationString .= ($onPage > 5) ? $disabledLink : '&nbsp;&nbsp;';
 
                 $initPageMin = ($onPage > 4) ? $onPage : 5;
                 $initPageMax = ($onPage < $totalPagesCount - 4) ? $onPage : $totalPagesCount - 4;
 
                 $pageNavigationString .= getListElementsFromTo($initPageMin - 1, $initPageMax + 2, $onPage, $baseUrl, $queryParamName, $itemsPerPage);
 
-                $pageNavigationString .= ($onPage < $totalPagesCount - 4) ? ' ... ' : '&nbsp;&nbsp;';
+                $pageNavigationString .= ($onPage < $totalPagesCount - 4) ? $disabledLink : '&nbsp;&nbsp;';
             }
             else
             {
-                $pageNavigationString .= ' ... ';
+                $pageNavigationString .= $disabledLink;
             }
 
             $pageNavigationString .= getListElementsFromTo($totalPagesCount - 2, $totalPagesCount + 1, $onPage, $baseUrl, $queryParamName, $itemsPerPage);
@@ -411,7 +415,7 @@ function admFuncProcessableImageSize()
  * $getDateId = admFuncVariableIsValid($_GET, 'dat_id', 'numeric', array('defaultValue' => 0));
  *
  * // string that will be initialized with text of id DAT_DATES
- * $getHeadline = admFuncVariableIsValid($_GET, 'headline', 'string', array('defaultValue' => $g_l10n->get('DAT_DATES')));
+ * $getHeadline = admFuncVariableIsValid($_GET, 'headline', 'string', array('defaultValue' => $gL10n->get('DAT_DATES')));
  *
  * // string initialized with actual and the only allowed values are actual and old
  * $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array('defaultValue' => 'actual', 'validValues' => array('actual', 'old')));
@@ -598,7 +602,7 @@ function admFuncVariableIsValid(array $array, $variableName, $datatype, array $o
  * @param string $timestampEdited Date and time of the moment when the user last changed the recordset
  * @return string Returns a html string with usernames who creates item and edit item the last time
  */
-function admFuncShowCreateChangeInfoById($userIdCreated, $timestampCreate, $userIdEdited, $timestampEdited)
+function admFuncShowCreateChangeInfoById($userIdCreated, $timestampCreate, $userIdEdited = 0, $timestampEdited = '')
 {
     global $gDb, $gProfileFields, $gL10n, $gPreferences;
 
@@ -821,23 +825,25 @@ function admRedirect($url, $statusCode = 303)
 {
     global $gLogger, $gMessage, $gL10n;
 
+    $loggerObject = array('url' => $url, 'statusCode' => $statusCode);
+
     if (headers_sent())
     {
-        $gLogger->error('REDIRECT: Header already sent!', array('url' => $url, 'statusCode' => $statusCode));
+        $gLogger->error('REDIRECT: Header already sent!', $loggerObject);
 
         $gMessage->show($gL10n->get('SYS_HEADER_ALREADY_SENT'));
         // => EXIT
     }
     if (filter_var($url, FILTER_VALIDATE_URL) === false)
     {
-        $gLogger->error('REDIRECT: URL is not a valid URL!', array('url' => $url, 'statusCode' => $statusCode));
+        $gLogger->error('REDIRECT: URL is not a valid URL!', $loggerObject);
 
         $gMessage->show($gL10n->get('SYS_REDIRECT_URL_INVALID'));
         // => EXIT
     }
     if (!in_array($statusCode, array(301, 302, 303, 307), true))
     {
-        $gLogger->error('REDIRECT: Status Code is not allowed!', array('url' => $url, 'statusCode' => $statusCode));
+        $gLogger->error('REDIRECT: Status Code is not allowed!', $loggerObject);
 
         $gMessage->show($gL10n->get('SYS_STATUS_CODE_INVALID'));
         // => EXIT
@@ -845,18 +851,45 @@ function admRedirect($url, $statusCode = 303)
 
     if (strpos($url, ADMIDIO_URL) === 0)
     {
-        $gLogger->info('REDIRECT: Redirecting to internal URL!', array('url' => $url, 'statusCode' => $statusCode));
+        $gLogger->info('REDIRECT: Redirecting to internal URL!', $loggerObject);
 
         // TODO check if user is authorized for url
         $redirectUrl = $url;
     }
     else
     {
-        $gLogger->notice('REDIRECT: Redirecting to external URL!', array('url' => $url, 'statusCode' => $statusCode));
+        $gLogger->notice('REDIRECT: Redirecting to external URL!', $loggerObject);
 
         $redirectUrl = ADMIDIO_URL . '/adm_program/system/redirect.php?url=' . $url;
     }
 
     header('Location: ' . $redirectUrl, true, $statusCode);
     exit();
+}
+
+/**
+ * Escape all HTML, JavaScript, and CSS
+ * @param string $input    The input string
+ * @param string $encoding Define character encoding tue use
+ * @return string Escaped string
+ */
+function noHTML($input, $encoding = 'UTF-8')
+{
+    // backwards compatibility for PHP-Version < 5.4
+    if (!defined('ENT_HTML5'))
+    {
+        return htmlentities($input, ENT_QUOTES, $encoding);
+    }
+
+    return htmlentities($input, ENT_QUOTES | ENT_HTML5, $encoding);
+}
+
+/**
+ * Get an string with question marks that are comma separated.
+ * @param array $valuesArray An array with the values that should be replaced with question marks
+ * @return string Question marks string
+ */
+function replaceValuesArrWithQM(array $valuesArray)
+{
+    return implode(',', array_fill(0, count($valuesArray), '?'));
 }

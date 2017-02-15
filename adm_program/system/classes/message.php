@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -143,7 +143,11 @@ class Message
             // forward to next page after x seconds
             if ($this->timer > 0)
             {
-                $page->addJavascript('setTimeout(function () { window.location.href = "'. $this->forwardUrl. '"; }, '. $this->timer. ');');
+                $page->addJavascript('
+                    setTimeout(function() {
+                        window.location.href = "'. $this->forwardUrl. '";
+                    }, '. $this->timer. ');'
+                );
             }
         }
         elseif(!$this->modalWindowMode)
@@ -161,7 +165,7 @@ class Message
                 if($this->showYesNoButtons)
                 {
                     $htmlButtons .= '
-                        <button id="admButtonYes" class="btn" type="button" onclick="self.location.href=\''. $this->forwardUrl. '\'">
+                        <button id="admButtonYes" class="btn" type="button" onclick="self.location.href = \"'. $this->forwardUrl. '\"">
                             <img src="'. THEME_URL. '/icons/ok.png" alt="'.$gL10n->get('SYS_YES').'" />
                             &nbsp;&nbsp;'.$gL10n->get('SYS_YES').'&nbsp;&nbsp;&nbsp;
                         </button>

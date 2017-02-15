@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Show current profile photo or uploaded session photo
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -14,8 +14,8 @@
  *             true  show uploaded photo of current session
  ***********************************************************************************************
  */
-require('../../system/common.php');
-require('../../system/login_valid.php');
+require(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getItemId   = admFuncVariableIsValid($_GET, 'inv_id',    'int', array('requireValue' => true));
@@ -36,7 +36,7 @@ if (!$gCurrentUser->editInventory())
 $gInventoryFields = new InventoryFields($gDb, $gCurrentOrganization->getValue('org_id'));
 $inventory = new Inventory($gDb, $gInventoryFields, $getItemId);
 
-if($inventory->getValue('inv_id') == 0)
+if((int) $inventory->getValue('inv_id') === 0)
 {
     $gMessage->show($gL10n->get('SYS_INVALID_PAGE_VIEW'));
     // => EXIT

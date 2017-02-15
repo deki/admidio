@@ -1,7 +1,7 @@
 /******************************************************************************
  * Cascading-Style-Sheets file for Admidio
  *
- * Copyright    : (c) 2004 - 2016 The Admidio Team
+ * Copyright    : (c) 2004 - 2017 The Admidio Team
  * Homepage     : https://www.admidio.org/
  * License      : GNU Public License 2 https://www.gnu.org/licenses/gpl-2.0.html
  *
@@ -163,6 +163,10 @@ h2 {
 
 h3 {
     font-size: 110%;
+}
+
+h4 {
+    font-size: 100%;
 }
 
 @media (min-width: 768px) {
@@ -617,6 +621,11 @@ input[type="time"] {
 
 /* Information block with user and timestamp who created and edited the data */
 
+.admidio-info-created-edited {
+    font-size: 8pt;
+    margin-top: 8px;
+}
+
 .admidio-info-created {
     display: block;
 }
@@ -739,6 +748,10 @@ input[type="time"] {
 
 #profile_photo {
     display: inline;
+}
+
+#profile_authorizations_box_body div {
+    margin-bottom: 5px;
 }
 
 .admidio-list-roles-assign li,

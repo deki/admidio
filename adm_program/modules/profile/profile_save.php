@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Save profile/registration data
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -20,7 +20,7 @@
  *
  *****************************************************************************/
 
-require_once('../../system/common.php');
+require_once(__DIR__ . '/../../system/common.php');
 
 // Initialize and check the parameters
 $getUserId  = admFuncVariableIsValid($_GET, 'user_id',  'int');
@@ -131,19 +131,19 @@ if($getNewUser === 2)
 // nun alle Profilfelder pruefen
 foreach($gProfileFields->mProfileFields as $field)
 {
-    $post_id = 'usf-'. $field->getValue('usf_id');
+    $postId = 'usf-'. $field->getValue('usf_id');
 
     // check and save only fields that aren't disabled
     if ($field->getValue('usf_disabled') == 0
     || ($field->getValue('usf_disabled') == 1 && $gCurrentUser->hasRightEditProfile($user, false))
     || ($field->getValue('usf_disabled') == 1 && $getNewUser > 0))
     {
-        if(isset($_POST[$post_id]))
+        if(isset($_POST[$postId]))
         {
             // Pflichtfelder muessen gefuellt sein
             // E-Mail bei Registrierung immer !!!
-            if((strlen($_POST[$post_id]) === 0 && $field->getValue('usf_mandatory') == 1)
-            || (strlen($_POST[$post_id]) === 0 && $field->getValue('usf_name_intern') === 'EMAIL' && $getNewUser === 2))
+            if((strlen($_POST[$postId]) === 0 && $field->getValue('usf_mandatory') == 1)
+            || (strlen($_POST[$postId]) === 0 && $field->getValue('usf_name_intern') === 'EMAIL' && $getNewUser === 2))
             {
                 $gMessage->show($gL10n->get('SYS_FIELD_EMPTY', $field->getValue('usf_name')));
                 // => EXIT
@@ -155,31 +155,31 @@ foreach($gProfileFields->mProfileFields as $field)
             || $field->getValue('usf_name_intern') === 'TWITTER'
             || $field->getValue('usf_name_intern') === 'XING')
             {
-                if(strValidCharacters($_POST[$post_id], 'url') && strpos($_POST[$post_id], '/') !== false)
+                if(strValidCharacters($_POST[$postId], 'url') && strpos($_POST[$postId], '/') !== false)
                 {
-                    if(strrpos($_POST[$post_id], '/profile.php?id=') > 0)
+                    if(strrpos($_POST[$postId], '/profile.php?id=') > 0)
                     {
                         // extract facebook id (not facebook unique name) from url
-                        $_POST[$post_id] = substr($_POST[$post_id], strrpos($_POST[$post_id], '/profile.php?id=') + 16);
+                        $_POST[$postId] = substr($_POST[$postId], strrpos($_POST[$postId], '/profile.php?id=') + 16);
                     }
                     else
                     {
-                        if(strrpos($_POST[$post_id], '/posts') > 0)
+                        if(strrpos($_POST[$postId], '/posts') > 0)
                         {
-                            $_POST[$post_id] = substr($_POST[$post_id], 0, strrpos($_POST[$post_id], '/posts'));
+                            $_POST[$postId] = substr($_POST[$postId], 0, strrpos($_POST[$postId], '/posts'));
                         }
 
-                        $_POST[$post_id] = substr($_POST[$post_id], strrpos($_POST[$post_id], '/') + 1);
-                        if(strrpos($_POST[$post_id], '?') > 0)
+                        $_POST[$postId] = substr($_POST[$postId], strrpos($_POST[$postId], '/') + 1);
+                        if(strrpos($_POST[$postId], '?') > 0)
                         {
-                            $_POST[$post_id] = substr($_POST[$post_id], 0, strrpos($_POST[$post_id], '?'));
+                            $_POST[$postId] = substr($_POST[$postId], 0, strrpos($_POST[$postId], '?'));
                         }
                     }
                 }
             }
 
             // Wert aus Feld in das User-Klassenobjekt schreiben
-            $returnCode = $user->setValue($field->getValue('usf_name_intern'), $_POST[$post_id]);
+            $returnCode = $user->setValue($field->getValue('usf_name_intern'), $_POST[$postId]);
 
             // Ausgabe der Fehlermeldung je nach Datentyp
             if(!$returnCode)
@@ -240,8 +240,8 @@ if($gCurrentUser->isAdministrator() || $getNewUser > 0)
             // pruefen, ob der Benutzername bereits vergeben ist
             $sql = 'SELECT usr_id
                       FROM '.TBL_USERS.'
-                     WHERE usr_login_name LIKE \''. $_POST['usr_login_name']. '\'';
-            $pdoStatement = $gDb->query($sql);
+                     WHERE usr_login_name = ?';
+            $pdoStatement = $gDb->queryPrepared($sql, array($_POST['usr_login_name']));
 
             if($pdoStatement->rowCount() > 0)
             {
@@ -276,6 +276,7 @@ if($getNewUser === 2)
         catch(AdmException $e)
         {
             $e->showHtml();
+            // => EXIT
         }
     }
 }
@@ -295,12 +296,13 @@ catch(AdmException $e)
     $gMessage->setForwardUrl($gNavigation->getPreviousUrl());
     $gNavigation->deleteLastUrl();
     $e->showHtml();
+    // => EXIT
 }
 
 $gDb->endTransaction();
 
 // wenn Daten des eingeloggten Users geaendert werden, dann Session-Variablen aktualisieren
-if($user->getValue('usr_id') == $gCurrentUser->getValue('usr_id'))
+if((int) $user->getValue('usr_id') === (int) $gCurrentUser->getValue('usr_id'))
 {
     $gCurrentUser = $user;
 }
@@ -328,6 +330,7 @@ if($getNewUser === 1 || $getNewUser === 3)
         {
             $gMessage->setForwardUrl($gNavigation->getPreviousUrl());
             $e->showHtml();
+            // => EXIT
         }
     }
     else

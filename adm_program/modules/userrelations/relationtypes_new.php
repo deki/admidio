@@ -3,7 +3,7 @@
  ***********************************************************************************************
  * Create and edit relation types
  *
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  *
@@ -12,8 +12,8 @@
  * urt_id : Id of the relation type that should be edited
  ***********************************************************************************************
  */
-require_once('../../system/common.php');
-require_once('../../system/login_valid.php');
+require_once(__DIR__ . '/../../system/common.php');
+require(__DIR__ . '/../../system/login_valid.php');
 
 // Initialize and check the parameters
 $getUrtId = admFuncVariableIsValid($_GET, 'urt_id', 'int');
@@ -50,8 +50,7 @@ $relationtypeEditMenu = $page->getMenu();
 $relationtypeEditMenu->addItem('menu_item_back', $gNavigation->getPreviousUrl(), $gL10n->get('SYS_BACK'), 'back.png');
 
 // show form
-$form = new HtmlForm('relationtype_edit_form',
-                     ADMIDIO_URL.FOLDER_MODULES.'/userrelations/relationtypes_function.php?urt_id='.$getUrtId.'&amp;mode=1', $page);
+$form = new HtmlForm('relationtype_edit_form', ADMIDIO_URL.FOLDER_MODULES.'/userrelations/relationtypes_function.php?urt_id='.$getUrtId.'&amp;mode=1', $page);
 
 $form->addInput(
     'urt_name', $gL10n->get('REL_USER_RELATION_TYPE_FORWARD'), $relationtype1->getValue('urt_name'),
@@ -90,6 +89,10 @@ $page->addJavascript('
     $("#urt_name").on("input", checkRelationTypeNames);
     $("#urt_name_inverse").on("input", checkRelationTypeNames);
 
+    /**
+     * @param {object} element
+     * @param {int}    duration
+     */
     function updateRelationType(element, duration) {
         if ($(element).val() === "unidirectional" || $(element).val() === "symmetrical") {
             $("#urt_name_inverse").prop("required", false);
@@ -129,10 +132,8 @@ $form->addInput(
 
 $form->addSubmitButton('btn_save', $gL10n->get('SYS_SAVE'), array('icon' => THEME_URL.'/icons/disk.png'));
 $form->addHtml(admFuncShowCreateChangeInfoById(
-    $relationtype1->getValue('urt_usr_id_create'),
-    $relationtype1->getValue('urt_timestamp_create'),
-    $relationtype1->getValue('urt_usr_id_change'),
-    $relationtype1->getValue('urt_timestamp_change')
+    (int) $relationtype1->getValue('urt_usr_id_create'), $relationtype1->getValue('urt_timestamp_create'),
+    (int) $relationtype1->getValue('urt_usr_id_change'), $relationtype1->getValue('urt_timestamp_change')
 ));
 
 // add form to html page and show page

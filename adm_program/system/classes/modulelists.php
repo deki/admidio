@@ -1,7 +1,7 @@
 <?php
 /**
  ***********************************************************************************************
- * @copyright 2004-2016 The Admidio Team
+ * @copyright 2004-2017 The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
@@ -97,41 +97,39 @@
  *                          [rol_valid] => 1
  *                          [36] => 0
  *                          [rol_system] => 0
- *                          [37] => 1
- *                          [rol_visible] => 1
- *                          [38] => 0
+ *                          [37] => 0
  *                          [rol_administrator] => 0
- *                          [39] => 3
+ *                          [38] => 3
  *                          [cat_id] => 3
- *                          [40] => 1
+ *                          [39] => 1
  *                          [cat_org_id] => 1
- *                          [41] => ROL
+ *                          [40] => ROL
  *                          [cat_type] => ROL
- *                          [42] => COMMON
+ *                          [41] => COMMON
  *                          [cat_name_intern] => COMMON
- *                          [43] => Allgemein
+ *                          [42] => Allgemein
  *                          [cat_name] => Allgemein
- *                          [44] => 0
+ *                          [43] => 0
  *                          [cat_hidden] => 0
- *                          [45] => 0
+ *                          [44] => 0
  *                          [cat_system] => 0
- *                          [46] => 0
+ *                          [45] => 0
  *                          [cat_default] => 0
- *                          [47] => 1
+ *                          [46] => 1
  *                          [cat_sequence] => 1
- *                          [48] => 1
+ *                          [47] => 1
  *                          [cat_usr_id_create] => 1
- *                          [49] => 2012-01-08 11:12:05
+ *                          [48] => 2012-01-08 11:12:05
  *                          [cat_timestamp_create] => 2012-01-08 11:12:05
- *                          [50] =>
+ *                          [49] =>
  *                          [cat_usr_id_change] =>
- *                          [51] =>
+ *                          [50] =>
  *                          [cat_timestamp_change] =>
- *                          [52] => 145
+ *                          [51] => 145
  *                          [num_members] => 145
- *                          [53] => 0
+ *                          [52] => 0
  *                          [num_leader] => 0
- *                          [54] => 5
+ *                          [53] => 5
  *                          [num_former] => 5
  *                      )
  *
@@ -264,35 +262,35 @@ class ModuleLists extends Modules
         }
 
         // assemble conditions
-        $sql_conditions = $this->getCategorySql().$this->getVisibleRolesSql();
+        $sqlConditions = $this->getCategorySql().$this->getVisibleRolesSql();
 
         // provoke empty result for not logged in users
         if(!$gValidLogin)
         {
-            $sql_conditions .= ' AND cat_hidden = 0 ';
+            $sqlConditions .= ' AND cat_hidden = 0 ';
         }
 
         $sql = 'SELECT rol.*, cat.*,
                        (SELECT COUNT(*) AS count
-                          FROM '.TBL_MEMBERS.' mem
+                          FROM '.TBL_MEMBERS.' AS mem
                          WHERE mem.mem_rol_id = rol.rol_id '.$this->getMemberStatusSql().'
                            AND mem_leader = 0) AS num_members,
                        (SELECT COUNT(*) AS count
-                          FROM '.TBL_MEMBERS.' mem
+                          FROM '.TBL_MEMBERS.' AS mem
                          WHERE mem.mem_rol_id = rol.rol_id '.$this->getMemberStatusSql().'
                            AND mem_leader = 1) AS num_leader,
                        (SELECT COUNT(*) AS count
-                          FROM '.TBL_MEMBERS.' mem
+                          FROM '.TBL_MEMBERS.' AS mem
                          WHERE mem.mem_rol_id = rol.rol_id
                            AND mem_end < \''. DATE_NOW.'\') AS num_former
-                  FROM '.TBL_ROLES.' rol
-            INNER JOIN '.TBL_CATEGORIES.' cat
+                  FROM '.TBL_ROLES.' AS rol
+            INNER JOIN '.TBL_CATEGORIES.' AS cat
                     ON cat_id = rol_cat_id
-                 WHERE rol_visible = 1
+                 WHERE cat_name_intern <> \'EVENTS\'
                    AND rol_valid   = '.(int) $this->activeRole.'
                    AND (  cat_org_id = '. $gCurrentOrganization->getValue('org_id'). '
                        OR cat_org_id IS NULL )
-                       '.$sql_conditions.'
+                       '.$sqlConditions.'
               ORDER BY cat_sequence, rol_name';
 
         // If is there a limit then specify one
@@ -305,7 +303,7 @@ class ModuleLists extends Modules
             $sql .= ' OFFSET '.$startElement;
         }
 
-        $listsStatement = $gDb->query($sql);
+        $listsStatement = $gDb->query($sql); // TODO add more params
 
         // array for results
         return array(
@@ -326,22 +324,23 @@ class ModuleLists extends Modules
         global $gCurrentOrganization, $gValidLogin, $gDb;
 
         // assemble conditions
-        $sql_conditions = $this->getCategorySql().$this->getVisibleRolesSql();
+        $sqlConditions = $this->getCategorySql() . $this->getVisibleRolesSql();
         // provoke empty result for not logged in users
         if(!$gValidLogin)
         {
-            $sql_conditions = ' AND cat_hidden = 0 ';
+            $sqlConditions = ' AND cat_hidden = 0 ';
         }
 
         $sql = 'SELECT COUNT(*) AS count
-          FROM '.TBL_ROLES.' rol, '.TBL_CATEGORIES.' cat
-         WHERE rol_valid   = '.(int) $this->activeRole.'
-           AND rol_visible = 1
-           AND rol_cat_id = cat_id
-           AND (  cat_org_id = '. $gCurrentOrganization->getValue('org_id'). '
-               OR cat_org_id IS NULL )
-               '.$sql_conditions;
-        $pdoStatement = $gDb->query($sql);
+                  FROM '.TBL_ROLES.' AS rol
+            INNER JOIN '.TBL_CATEGORIES.' AS cat
+                    ON rol_cat_id = cat_id
+                 WHERE rol_valid   = ? -- $this->activeRole
+                   AND cat_name_intern <> \'EVENTS\'
+                   AND (  cat_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
+                       OR cat_org_id IS NULL )
+                       '.$sqlConditions;
+        $pdoStatement = $gDb->queryPrepared($sql, array((int) $this->activeRole, $gCurrentOrganization->getValue('org_id'))); // TODO add more params
 
         return (int) $pdoStatement->fetchColumn();
     }
@@ -356,12 +355,12 @@ class ModuleLists extends Modules
 
         $sql = 'SELECT lst_id, lst_name, lst_global
                   FROM '.TBL_LISTS.'
-                 WHERE lst_org_id = '. $gCurrentOrganization->getValue('org_id'). '
-                   AND (  lst_usr_id = '. $gCurrentUser->getValue('usr_id'). '
+                 WHERE lst_org_id = ? -- $gCurrentOrganization->getValue(\'org_id\')
+                   AND (  lst_usr_id = ? -- $gCurrentUser->getValue(\'usr_id\')
                        OR lst_global = 1)
                    AND lst_name IS NOT NULL
               ORDER BY lst_global ASC, lst_name ASC';
-        $pdoStatement = $gDb->query($sql);
+        $pdoStatement = $gDb->queryPrepared($sql, array($gCurrentOrganization->getValue('org_id'), $gCurrentUser->getValue('usr_id')));
 
         $configurations = array();
         while($row = $pdoStatement->fetch())
