@@ -136,7 +136,6 @@ $replaceArray = array(
     '%DATABASE%'     => $_SESSION['db_database'],
     '%USER%'         => $_SESSION['db_user'],
     '%PASSWORD%'     => $_SESSION['db_password'],
-    '%ROOT_PATH%'    => ADMIDIO_URL,
     '%ORGANIZATION%' => $_SESSION['orga_shortname'],
     '%TIMEZONE%'     => $_SESSION['orga_timezone']
 );

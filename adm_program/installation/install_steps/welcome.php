@@ -44,17 +44,6 @@ if (ADMIDIO_VERSION_BETA > 0)
         </div>';
 }
 
-// if safe mode is used then show a notice to the user
-// deprecated: Remove if PHP 5.3 dropped
-if (ini_get('safe_mode') === '1')
-{
-    $gLogger->warning('DEPRECATED: Safe-Mode is enabled!');
-    $message .= '
-        <div class="alert alert-warning alert-small" role="alert">
-            <span class="glyphicon glyphicon-warning-sign"></span>'.$gL10n->get('INS_WARNING_SAFE_MODE').'
-        </div>';
-}
-
 // create a page with the notice that the installation must be configured on the next pages
 $form = new HtmlFormInstallation('installation-form', 'installation.php?step=connect_database');
 $form->setFormDescription($message, $gL10n->get('INS_WELCOME_TO_INSTALLATION'));

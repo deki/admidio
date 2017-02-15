@@ -441,7 +441,6 @@ class HtmlPage
     {
         global $gL10n, $gDb, $gCurrentSession, $gCurrentOrganization, $gCurrentUser, $gPreferences;
         global $gValidLogin, $gProfileFields, $gHomepage, $gDbType;
-        global $g_root_path; // Deprecated
 
         $headerContent    = '';
         $htmlMyHeader     = '';

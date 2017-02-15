@@ -538,18 +538,4 @@ class Email extends PHPMailer
 
         return true;
     }
-
-    /**
-     * Mailbenachrichtigung für Admin
-     * @deprecated 3.3.0:4.0.0 "adminNotfication()" is a typo. Use "adminNotification()" instead.
-     * @param string $subject
-     * @param string $message
-     * @param string $editorName
-     * @param string $editorEmail
-     * @return bool|string
-     */
-    public function adminNotfication($subject, $message, $editorName = '', $editorEmail = '')
-    {
-        return $this->adminNotification($subject, $message, $editorName, $editorEmail);
-    }
 }

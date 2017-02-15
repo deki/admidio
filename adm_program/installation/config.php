@@ -23,11 +23,6 @@ $g_adm_db   = '%DATABASE%';    // Database
 $g_adm_usr  = '%USER%';        // User
 $g_adm_pw   = '%PASSWORD%';    // Password
 
-// URL to this Admidio installation
-// Example: 'https://www.admidio.org/example'
-// Deprecated
-$g_root_path = '%ROOT_PATH%';
-
 // If you use a separate proxy for communications security with SSL than you must
 // enter the proxy address here. Admidio will use it to generate the full URL.
 // Example: 'MyProxy.com'

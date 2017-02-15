@@ -24,15 +24,6 @@ $_GET    = admStrStripTagsSpecial($_GET);
 $_POST   = admStrStripTagsSpecial($_POST);
 $_COOKIE = admStrStripTagsSpecial($_COOKIE);
 
-// escape all quotes so db queries are save
-// deprecated
-if(!get_magic_quotes_gpc())
-{
-    $_GET    = strAddSlashesDeep($_GET);
-    $_POST   = strAddSlashesDeep($_POST);
-    $_COOKIE = strAddSlashesDeep($_COOKIE);
-}
-
 if ($gDebug)
 {
     $diff = array('GET' => array(), 'POST' => array(), 'COOKIE' => array());

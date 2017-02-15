@@ -379,15 +379,17 @@ class User extends TableAccess
         $org = $orgStatement->fetch();
 
         $sqlAdministrator = '';
-        // only check for administrator role if version > 3.1 because before it was webmaster role
-        if ($isAdministrator && version_compare($installedDbVersion, '3.2', '>='))
+        if ($isAdministrator)
         {
-            $sqlAdministrator = ', rol_administrator AS administrator';
-        }
-        // only check for webmaster role if version > 2.3 because before we don't have that flag
-        elseif ($isAdministrator && version_compare($installedDbVersion, '2.4', '>='))
-        {
-            $sqlAdministrator = ', rol_webmaster AS administrator';
+            // only check for administrator role if version > 3.1 because before it was webmaster role
+            if ($isAdministrator && version_compare($installedDbVersion, '3.2', '>='))
+            {
+                $sqlAdministrator = ', rol_administrator AS administrator';
+            }
+            else
+            {
+                $sqlAdministrator = ', rol_webmaster AS administrator';
+            }
         }
 
         // Check if user is currently member of a role of an organisation
@@ -432,7 +434,7 @@ class User extends TableAccess
                 $isAdmin = $rows[0]['administrator'] || $rows[1]['administrator'];
             }
 
-            if (!$isAdmin && version_compare($installedDbVersion, '2.4', '>='))
+            if (!$isAdmin)
             {
                 $loggingObject = array(
                     'username'     => $this->getValue('usr_login_name'),
