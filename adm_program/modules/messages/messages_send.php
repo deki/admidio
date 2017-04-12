@@ -502,7 +502,7 @@ if ($getMsgType === TableMessage::MESSAGE_TYPE_EMAIL)
     }
 
     // load mail template and replace text
-    $email->setTemplateText($postBody, $postName, $gCurrentUser->getValue('EMAIL'), $receiverName);
+    //$email->setTemplateText($postBody, $postName, $gCurrentUser->getValue('EMAIL'), $receiverName);
 
     // finally send the mail
     $sendResult = $email->sendEmail();
