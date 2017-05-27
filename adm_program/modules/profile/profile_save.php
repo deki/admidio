@@ -93,7 +93,8 @@ switch($getNewUser)
 /*------------------------------------------------------------*/
 
 // bei Registrierung muss Loginname und Pw geprueft werden
-if($getNewUser === 2)
+$loginPasswordForNewUsersRequired = false; // TODO introduce preference for it
+if($getNewUser === 2 && $loginPasswordForNewUsersRequired)
 {
     if($_POST['usr_login_name'] === '')
     {

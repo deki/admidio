@@ -189,6 +189,7 @@ foreach($gProfileFields->getProfileFields() as $field)
 
         if($field->getValue('cat_name_intern') === 'BASIC_DATA')
         {
+            $loginPasswordForNewUsersRequired = false; // TODO introduce preference for it
             if($getUserId > 0 || $getNewUser === 2)
             {
                 // add username to form
@@ -200,7 +201,7 @@ foreach($gProfileFields->getProfileFields() as $field)
                     $fieldProperty = HtmlForm::FIELD_DISABLED;
                     $fieldHelpId   = '';
                 }
-                elseif($getNewUser > 0)
+                elseif($getNewUser > 0 && $loginPasswordForNewUsersRequired)
                 {
                     $fieldProperty = HtmlForm::FIELD_REQUIRED;
                 }
