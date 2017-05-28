@@ -2107,4 +2107,24 @@ class User extends TableAccess
     {
         return $this->checkRolesRight('rol_weblinks');
     }
+
+    public function fillMemberNumber()
+    {
+        $memberNumberColumnName = 'MITGLIEDSNUMMER';
+        $existingMemberNumber = $this->getValue($memberNumberColumnName);
+        if ($existingMemberNumber == null || $existingMemberNumber == '') {
+            $sql = 'SELECT max(CAST(usd_value as unsigned))
+                      FROM ' . TBL_USER_DATA . '
+                INNER JOIN ' . TBL_USER_FIELDS . '
+                        ON usf_id = usd_usf_id
+                     WHERE usf_name_intern  = ?';
+            $queryParams = array($memberNumberColumnName);
+            $lastMemberNumberStmt = $this->db->queryPrepared($sql, $queryParams);
+            $lastMemberNumber = $lastMemberNumberStmt->fetchColumn();
+            if ($lastMemberNumber == null || $lastMemberNumber == '') {
+                $lastMemberNumber = 0;
+            }
+            $this->setValue($memberNumberColumnName, $lastMemberNumber+1);
+        }
+    }
 }

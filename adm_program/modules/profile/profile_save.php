@@ -49,6 +49,7 @@ if($getNewUser === 2 || $getNewUser === 3)
 {
     // create user registration object and set requested organization
     $user = new UserRegistration($gDb, $gProfileFields, $getUserId);
+    $user->fillMemberNumber();
     $user->setOrganization((int) $_POST['reg_org_id']);
 }
 else
@@ -232,7 +233,7 @@ foreach($gProfileFields->getProfileFields() as $field)
             {
                 $user->setValue($field->getValue('usf_name_intern'), '0');
             }
-            elseif($field->getValue('usf_mandatory') == 1)
+            elseif($field->getValue('usf_mandatory') == 1 && $field->getValue('usf_name_intern') !== 'MITGLIEDSNUMMER')
             {
                 $gMessage->show($gL10n->get('SYS_FIELD_EMPTY', array($field->getValue('usf_name'))));
                 // => EXIT
@@ -272,7 +273,9 @@ if($gCurrentUser->isAdministrator() || $getNewUser > 0)
 // falls Registrierung, dann die entsprechenden Felder noch besetzen
 if($getNewUser === 2)
 {
-    $user->setPassword($_POST['usr_password']);
+    if (isset($_POST['usr_password'])) {
+        $user->setPassword($_POST['usr_password']);
+    }
 
     // At user registration with activated captcha check the captcha input
     if ($gSettingsManager->getBool('enable_registration_captcha'))
